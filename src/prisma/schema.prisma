@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(USER)
+
+  ownedGroups  Group[]         @relation("GroupOwner")
+  memberships  GroupMember[]
+  expenses     Expense[]       @relation("ExpensePayer")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String
+  ownerId   Int
+
+  owner     User         @relation("GroupOwner", fields: [ownerId], references: [id])
+  members   GroupMember[]
+  expenses  Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GroupMember {
+  id       Int @id @default(autoincrement())
+  groupId  Int
+  userId   Int
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  groupId     Int
+  paidById    Int
+
+  description String
+  amount      BigInt
+
+  group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy User  @relation("ExpensePayer", fields: [paidById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([groupId])
+  @@index([paidById])
+}
