@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: geds-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: geds
+    ports:
+      - '5432:5432'
+    volumes:
+      - geds-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  geds-postgres-data:
