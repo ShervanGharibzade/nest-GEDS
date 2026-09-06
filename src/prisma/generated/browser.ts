@@ -37,3 +37,8 @@ export type GroupMember = Prisma.GroupMemberModel
  * 
  */
 export type Expense = Prisma.ExpenseModel
+/**
+ * Model ExpenseSplit
+ * 
+ */
+export type ExpenseSplit = Prisma.ExpenseSplitModel

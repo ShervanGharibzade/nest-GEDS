@@ -19,34 +19,38 @@ model User {
   passwordHash String
   role         UserRole @default(USER)
 
-  ownedGroups  Group[]         @relation("GroupOwner")
-  memberships  GroupMember[]
-  expenses     Expense[]       @relation("ExpensePayer")
+  ownedGroups Group[]        @relation("GroupOwner")
+  memberships GroupMember[]
+  expenses    Expense[]      @relation("ExpensePayer")
+  splits      ExpenseSplit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Group {
-  id        Int      @id @default(autoincrement())
-  name      String
-  ownerId   Int
+  id      Int    @id @default(autoincrement())
+  name    String
+  ownerId Int
 
-  owner     User         @relation("GroupOwner", fields: [ownerId], references: [id])
-  members   GroupMember[]
-  expenses  Expense[]
+  owner User @relation("GroupOwner", fields: [ownerId], references: [id])
+
+  members  GroupMember[]
+  expenses Expense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
 }
 
 model GroupMember {
-  id       Int @id @default(autoincrement())
-  groupId  Int
-  userId   Int
+  id      Int @id @default(autoincrement())
+  groupId Int
+  userId  Int
 
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   joinedAt DateTime @default(now())
 
@@ -55,18 +59,32 @@ model GroupMember {
 }
 
 model Expense {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   groupId     Int
   paidById    Int
-
   description String
   amount      BigInt
 
   group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   paidBy User  @relation("ExpensePayer", fields: [paidById], references: [id])
 
+  splits ExpenseSplit[]
+
   createdAt DateTime @default(now())
 
   @@index([groupId])
   @@index([paidById])
+}
+
+model ExpenseSplit {
+  id        Int    @id @default(autoincrement())
+  expenseId Int
+  userId    Int
+  amount    BigInt
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId])
 }
