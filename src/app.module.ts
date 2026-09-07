@@ -9,9 +9,15 @@ import { ExpenseModule } from './expense/expense.module.js';
 import { ExpenseSplitModule } from './expense-split/expense-split.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AppRedisModule } from './redis/redis.module.js';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt.auth.guard.js';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     UsersModule,
     GroupModule,
     GroupMemberModule,
@@ -21,7 +27,14 @@ import { AppRedisModule } from './redis/redis.module.js';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
   exports: [PrismaService],
 })
 export class AppModule {}

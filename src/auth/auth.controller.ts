@@ -23,6 +23,7 @@ import { AccessTokenService } from './jwt/access-token.service.js';
 import { UsersService } from '../users/users.service.js';
 import { RedisService } from '../redis/redis.service.js';
 import { RefreshResponseDto } from './dto/refresh-response-dto.js';
+import { Public } from './decorators/public.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +36,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
@@ -44,6 +46,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate user and issue tokens' })
   @ApiResponse({
