@@ -12,6 +12,7 @@ import { AppRedisModule } from './redis/redis.module.js';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt.auth.guard.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from './auth/guards/jwt.auth.guard.js';
       isGlobal: true,
     }),
     UsersModule,
+    PrismaModule,
     GroupModule,
     GroupMemberModule,
     ExpenseModule,
