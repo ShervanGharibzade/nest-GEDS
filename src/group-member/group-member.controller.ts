@@ -1,15 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { GroupMemberService } from './group-member.service.js';
-import { CreateGroupMemberDto } from './dto/create-group-member.dto.js';
+import { AddGroupMemberDto } from './dto/create-group-member.dto.js';
 import { UpdateGroupMemberDto } from './dto/update-group-member.dto.js';
+import type { Request } from 'express';
+import { DecodeTokenService } from '../auth/jwt/decode-token.service.js';
 
 @Controller('group-member')
 export class GroupMemberController {
-  constructor(private readonly groupMemberService: GroupMemberService) {}
+  constructor(
+    private readonly groupMemberService: GroupMemberService,
+    private readonly decodeTokenService: DecodeTokenService,
+  ) {}
 
-  @Post()
-  create(@Body() createGroupMemberDto: CreateGroupMemberDto) {
-    return this.groupMemberService.create(createGroupMemberDto);
+  @Post('/add')
+  async add(@Req() req: Request, @Body() addGroupMemberDto: AddGroupMemberDto) {
+    const refreshToken = await this.extractRefreshToken(req);
+
+    const { id } =
+      await this.decodeTokenService.decodeRefreshToken(refreshToken);
+    return this.groupMemberService.add(addGroupMemberDto, id);
   }
 
   @Get()
@@ -22,13 +40,25 @@ export class GroupMemberController {
     return this.groupMemberService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGroupMemberDto: UpdateGroupMemberDto) {
-    return this.groupMemberService.update(+id, updateGroupMemberDto);
+  @Delete(':userId/groupId')
+  async remove(
+    @Req() req: Request,
+    @Param() userId: string,
+    @Param() groupId: string,
+  ) {
+    const refreshToken = await this.extractRefreshToken(req);
+
+    const { id } =
+      await this.decodeTokenService.decodeRefreshToken(refreshToken);
+
+    return this.groupMemberService.remove(Number(groupId), Number(userId), id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupMemberService.remove(+id);
+  private extractRefreshToken(request: Request): string {
+    const token = request.cookies?.['refresh_token'];
+    if (!token) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+    return token;
   }
 }

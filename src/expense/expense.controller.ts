@@ -1,15 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ExpenseService } from './expense.service.js';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
-import { UpdateExpenseDto } from './dto/update-expense.dto.js';
+import type { Request } from 'express';
+import { DecodeTokenService } from '../auth/jwt/decode-token.service.js';
 
 @Controller('expense')
 export class ExpenseController {
-  constructor(private readonly expenseService: ExpenseService) {}
+  constructor(
+    private readonly expenseService: ExpenseService,
+    private readonly decodeTokenService: DecodeTokenService,
+  ) {}
 
   @Post()
-  create(@Body() createExpenseDto: CreateExpenseDto) {
-    return this.expenseService.create(createExpenseDto);
+  async create(
+    @Body() createExpenseDto: CreateExpenseDto,
+    @Req() req: Request,
+  ) {
+    const refreshToken = this.extractRefreshToken(req);
+
+    const { id } =
+      await this.decodeTokenService.decodeRefreshToken(refreshToken);
+
+    return this.expenseService.create(createExpenseDto, id);
   }
 
   @Get()
@@ -22,13 +44,11 @@ export class ExpenseController {
     return this.expenseService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateExpenseDto: UpdateExpenseDto) {
-    return this.expenseService.update(+id, updateExpenseDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.expenseService.remove(+id);
+  private extractRefreshToken(request: Request): string {
+    const token = request.cookies?.['refresh_token'];
+    if (!token) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+    return token;
   }
 }
