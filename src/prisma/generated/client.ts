@@ -66,3 +66,8 @@ export type Expense = Prisma.ExpenseModel
  * 
  */
 export type ExpenseSplit = Prisma.ExpenseSplitModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel

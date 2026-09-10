@@ -55,7 +55,8 @@ export const ModelName = {
   Group: 'Group',
   GroupMember: 'GroupMember',
   Expense: 'Expense',
-  ExpenseSplit: 'ExpenseSplit'
+  ExpenseSplit: 'ExpenseSplit',
+  Transaction: 'Transaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -113,6 +114,7 @@ export const ExpenseScalarFieldEnum = {
   groupId: 'groupId',
   paidById: 'paidById',
   description: 'description',
+  status: 'status',
   amount: 'amount',
   createdAt: 'createdAt'
 } as const
@@ -124,10 +126,25 @@ export const ExpenseSplitScalarFieldEnum = {
   id: 'id',
   expenseId: 'expenseId',
   userId: 'userId',
+  status: 'status',
   amount: 'amount'
 } as const
 
 export type ExpenseSplitScalarFieldEnum = (typeof ExpenseSplitScalarFieldEnum)[keyof typeof ExpenseSplitScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  fromUserId: 'fromUserId',
+  toUserId: 'toUserId',
+  expenseId: 'expenseId',
+  amount: 'amount',
+  description: 'description',
+  createdAt: 'createdAt'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -144,4 +161,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

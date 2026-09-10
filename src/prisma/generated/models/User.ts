@@ -236,6 +236,8 @@ export type UserWhereInput = {
   memberships?: Prisma.GroupMemberListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
   splits?: Prisma.ExpenseSplitListRelationFilter
+  transactionsSent?: Prisma.TransactionListRelationFilter
+  transactionsReceived?: Prisma.TransactionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -250,6 +252,8 @@ export type UserOrderByWithRelationInput = {
   memberships?: Prisma.GroupMemberOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
   splits?: Prisma.ExpenseSplitOrderByRelationAggregateInput
+  transactionsSent?: Prisma.TransactionOrderByRelationAggregateInput
+  transactionsReceived?: Prisma.TransactionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -267,6 +271,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   memberships?: Prisma.GroupMemberListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
   splits?: Prisma.ExpenseSplitListRelationFilter
+  transactionsSent?: Prisma.TransactionListRelationFilter
+  transactionsReceived?: Prisma.TransactionListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -308,6 +314,8 @@ export type UserCreateInput = {
   memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -322,6 +330,8 @@ export type UserUncheckedCreateInput = {
   memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserUpdateInput = {
@@ -335,6 +345,8 @@ export type UserUpdateInput = {
   memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -349,6 +361,8 @@ export type UserUncheckedUpdateInput = {
   memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -499,6 +513,34 @@ export type UserUpdateOneRequiredWithoutSplitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSplitsInput, Prisma.UserUpdateWithoutSplitsInput>, Prisma.UserUncheckedUpdateWithoutSplitsInput>
 }
 
+export type UserCreateNestedOneWithoutTransactionsSentInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsSentInput, Prisma.UserUncheckedCreateWithoutTransactionsSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsSentInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutTransactionsReceivedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsReceivedInput, Prisma.UserUncheckedCreateWithoutTransactionsReceivedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsReceivedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTransactionsSentNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsSentInput, Prisma.UserUncheckedCreateWithoutTransactionsSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsSentInput
+  upsert?: Prisma.UserUpsertWithoutTransactionsSentInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsSentInput, Prisma.UserUpdateWithoutTransactionsSentInput>, Prisma.UserUncheckedUpdateWithoutTransactionsSentInput>
+}
+
+export type UserUpdateOneRequiredWithoutTransactionsReceivedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsReceivedInput, Prisma.UserUncheckedCreateWithoutTransactionsReceivedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsReceivedInput
+  upsert?: Prisma.UserUpsertWithoutTransactionsReceivedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsReceivedInput, Prisma.UserUpdateWithoutTransactionsReceivedInput>, Prisma.UserUncheckedUpdateWithoutTransactionsReceivedInput>
+}
+
 export type UserCreateWithoutOwnedGroupsInput = {
   email: string
   name: string
@@ -509,6 +551,8 @@ export type UserCreateWithoutOwnedGroupsInput = {
   memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutOwnedGroupsInput = {
@@ -522,6 +566,8 @@ export type UserUncheckedCreateWithoutOwnedGroupsInput = {
   memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutOwnedGroupsInput = {
@@ -550,6 +596,8 @@ export type UserUpdateWithoutOwnedGroupsInput = {
   memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOwnedGroupsInput = {
@@ -563,6 +611,8 @@ export type UserUncheckedUpdateWithoutOwnedGroupsInput = {
   memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -575,6 +625,8 @@ export type UserCreateWithoutMembershipsInput = {
   ownedGroups?: Prisma.GroupCreateNestedManyWithoutOwnerInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -588,6 +640,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   ownedGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutOwnerInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -616,6 +670,8 @@ export type UserUpdateWithoutMembershipsInput = {
   ownedGroups?: Prisma.GroupUpdateManyWithoutOwnerNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -629,6 +685,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   ownedGroups?: Prisma.GroupUncheckedUpdateManyWithoutOwnerNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserCreateWithoutExpensesInput = {
@@ -641,6 +699,8 @@ export type UserCreateWithoutExpensesInput = {
   ownedGroups?: Prisma.GroupCreateNestedManyWithoutOwnerInput
   memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutExpensesInput = {
@@ -654,6 +714,8 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   ownedGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutOwnerInput
   memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutExpensesInput = {
@@ -682,6 +744,8 @@ export type UserUpdateWithoutExpensesInput = {
   ownedGroups?: Prisma.GroupUpdateManyWithoutOwnerNestedInput
   memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExpensesInput = {
@@ -695,6 +759,8 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   ownedGroups?: Prisma.GroupUncheckedUpdateManyWithoutOwnerNestedInput
   memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserCreateWithoutSplitsInput = {
@@ -707,6 +773,8 @@ export type UserCreateWithoutSplitsInput = {
   ownedGroups?: Prisma.GroupCreateNestedManyWithoutOwnerInput
   memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutSplitsInput = {
@@ -720,6 +788,8 @@ export type UserUncheckedCreateWithoutSplitsInput = {
   ownedGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutOwnerInput
   memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutSplitsInput = {
@@ -748,6 +818,8 @@ export type UserUpdateWithoutSplitsInput = {
   ownedGroups?: Prisma.GroupUpdateManyWithoutOwnerNestedInput
   memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSplitsInput = {
@@ -761,6 +833,156 @@ export type UserUncheckedUpdateWithoutSplitsInput = {
   ownedGroups?: Prisma.GroupUncheckedUpdateManyWithoutOwnerNestedInput
   memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
+}
+
+export type UserCreateWithoutTransactionsSentInput = {
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedGroups?: Prisma.GroupCreateNestedManyWithoutOwnerInput
+  memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsReceived?: Prisma.TransactionCreateNestedManyWithoutToUserInput
+}
+
+export type UserUncheckedCreateWithoutTransactionsSentInput = {
+  id?: number
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutOwnerInput
+  memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsReceived?: Prisma.TransactionUncheckedCreateNestedManyWithoutToUserInput
+}
+
+export type UserCreateOrConnectWithoutTransactionsSentInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsSentInput, Prisma.UserUncheckedCreateWithoutTransactionsSentInput>
+}
+
+export type UserCreateWithoutTransactionsReceivedInput = {
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedGroups?: Prisma.GroupCreateNestedManyWithoutOwnerInput
+  memberships?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  splits?: Prisma.ExpenseSplitCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionCreateNestedManyWithoutFromUserInput
+}
+
+export type UserUncheckedCreateWithoutTransactionsReceivedInput = {
+  id?: number
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutOwnerInput
+  memberships?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutUserInput
+  transactionsSent?: Prisma.TransactionUncheckedCreateNestedManyWithoutFromUserInput
+}
+
+export type UserCreateOrConnectWithoutTransactionsReceivedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsReceivedInput, Prisma.UserUncheckedCreateWithoutTransactionsReceivedInput>
+}
+
+export type UserUpsertWithoutTransactionsSentInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsSentInput, Prisma.UserUncheckedUpdateWithoutTransactionsSentInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsSentInput, Prisma.UserUncheckedCreateWithoutTransactionsSentInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTransactionsSentInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsSentInput, Prisma.UserUncheckedUpdateWithoutTransactionsSentInput>
+}
+
+export type UserUpdateWithoutTransactionsSentInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedGroups?: Prisma.GroupUpdateManyWithoutOwnerNestedInput
+  memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsReceived?: Prisma.TransactionUpdateManyWithoutToUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTransactionsSentInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedGroups?: Prisma.GroupUncheckedUpdateManyWithoutOwnerNestedInput
+  memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsReceived?: Prisma.TransactionUncheckedUpdateManyWithoutToUserNestedInput
+}
+
+export type UserUpsertWithoutTransactionsReceivedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsReceivedInput, Prisma.UserUncheckedUpdateWithoutTransactionsReceivedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsReceivedInput, Prisma.UserUncheckedCreateWithoutTransactionsReceivedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTransactionsReceivedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsReceivedInput, Prisma.UserUncheckedUpdateWithoutTransactionsReceivedInput>
+}
+
+export type UserUpdateWithoutTransactionsReceivedInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedGroups?: Prisma.GroupUpdateManyWithoutOwnerNestedInput
+  memberships?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  splits?: Prisma.ExpenseSplitUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUpdateManyWithoutFromUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTransactionsReceivedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedGroups?: Prisma.GroupUncheckedUpdateManyWithoutOwnerNestedInput
+  memberships?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutUserNestedInput
+  transactionsSent?: Prisma.TransactionUncheckedUpdateManyWithoutFromUserNestedInput
 }
 
 
@@ -773,6 +995,8 @@ export type UserCountOutputType = {
   memberships: number
   expenses: number
   splits: number
+  transactionsSent: number
+  transactionsReceived: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -780,6 +1004,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   memberships?: boolean | UserCountOutputTypeCountMembershipsArgs
   expenses?: boolean | UserCountOutputTypeCountExpensesArgs
   splits?: boolean | UserCountOutputTypeCountSplitsArgs
+  transactionsSent?: boolean | UserCountOutputTypeCountTransactionsSentArgs
+  transactionsReceived?: boolean | UserCountOutputTypeCountTransactionsReceivedArgs
 }
 
 /**
@@ -820,6 +1046,20 @@ export type UserCountOutputTypeCountSplitsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.ExpenseSplitWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTransactionsSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTransactionsReceivedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -833,6 +1073,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
   splits?: boolean | Prisma.User$splitsArgs<ExtArgs>
+  transactionsSent?: boolean | Prisma.User$transactionsSentArgs<ExtArgs>
+  transactionsReceived?: boolean | Prisma.User$transactionsReceivedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -872,6 +1114,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
   splits?: boolean | Prisma.User$splitsArgs<ExtArgs>
+  transactionsSent?: boolean | Prisma.User$transactionsSentArgs<ExtArgs>
+  transactionsReceived?: boolean | Prisma.User$transactionsReceivedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -884,6 +1128,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     memberships: Prisma.$GroupMemberPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
     splits: Prisma.$ExpenseSplitPayload<ExtArgs>[]
+    transactionsSent: Prisma.$TransactionPayload<ExtArgs>[]
+    transactionsReceived: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1291,6 +1537,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   memberships<T extends Prisma.User$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.User$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   splits<T extends Prisma.User$splitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$splitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpenseSplitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  transactionsSent<T extends Prisma.User$transactionsSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  transactionsReceived<T extends Prisma.User$transactionsReceivedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1813,6 +2061,54 @@ export type User$splitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.ExpenseSplitScalarFieldEnum | Prisma.ExpenseSplitScalarFieldEnum[]
+}
+
+/**
+ * User.transactionsSent
+ */
+export type User$transactionsSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+}
+
+/**
+ * User.transactionsReceived
+ */
+export type User$transactionsReceivedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
 }
 
 /**

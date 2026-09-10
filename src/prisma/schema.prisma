@@ -12,6 +12,22 @@ enum UserRole {
   ADMIN
 }
 
+enum ExpenseStatus {
+  OPEN
+  CLOSE
+}
+
+enum SplitStatus {
+  PAID
+  UNPAID
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -23,6 +39,10 @@ model User {
   memberships GroupMember[]
   expenses    Expense[]      @relation("ExpensePayer")
   splits      ExpenseSplit[]
+
+
+  transactionsSent     Transaction[] @relation("TransactionFrom")
+  transactionsReceived Transaction[] @relation("TransactionTo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -37,6 +57,8 @@ model Group {
 
   members  GroupMember[]
   expenses Expense[]
+
+  transactions Transaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,6 +85,7 @@ model Expense {
   groupId     Int
   paidById    Int
   description String
+  status      ExpenseStatus @default(OPEN)
   amount      BigInt
 
   group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -80,6 +103,7 @@ model ExpenseSplit {
   id        Int    @id @default(autoincrement())
   expenseId Int
   userId    Int
+  status    SplitStatus @default(UNPAID)
   amount    BigInt
 
   expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
@@ -87,4 +111,27 @@ model ExpenseSplit {
 
   @@unique([expenseId, userId])
   @@index([userId])
+}
+
+
+model Transaction {
+  id Int @id @default(autoincrement())
+
+  groupId    Int
+  fromUserId Int
+  toUserId   Int
+  expenseId  Int
+
+  amount      BigInt
+  description String?
+
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("TransactionFrom", fields: [fromUserId], references: [id])
+  toUser   User  @relation("TransactionTo", fields: [toUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([groupId])
+  @@index([fromUserId])
+  @@index([toUserId])
 }

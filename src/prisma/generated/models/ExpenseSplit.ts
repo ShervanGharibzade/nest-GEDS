@@ -44,6 +44,7 @@ export type ExpenseSplitMinAggregateOutputType = {
   id: number | null
   expenseId: number | null
   userId: number | null
+  status: $Enums.SplitStatus | null
   amount: bigint | null
 }
 
@@ -51,6 +52,7 @@ export type ExpenseSplitMaxAggregateOutputType = {
   id: number | null
   expenseId: number | null
   userId: number | null
+  status: $Enums.SplitStatus | null
   amount: bigint | null
 }
 
@@ -58,6 +60,7 @@ export type ExpenseSplitCountAggregateOutputType = {
   id: number
   expenseId: number
   userId: number
+  status: number
   amount: number
   _all: number
 }
@@ -81,6 +84,7 @@ export type ExpenseSplitMinAggregateInputType = {
   id?: true
   expenseId?: true
   userId?: true
+  status?: true
   amount?: true
 }
 
@@ -88,6 +92,7 @@ export type ExpenseSplitMaxAggregateInputType = {
   id?: true
   expenseId?: true
   userId?: true
+  status?: true
   amount?: true
 }
 
@@ -95,6 +100,7 @@ export type ExpenseSplitCountAggregateInputType = {
   id?: true
   expenseId?: true
   userId?: true
+  status?: true
   amount?: true
   _all?: true
 }
@@ -189,6 +195,7 @@ export type ExpenseSplitGroupByOutputType = {
   id: number
   expenseId: number
   userId: number
+  status: $Enums.SplitStatus
   amount: bigint
   _count: ExpenseSplitCountAggregateOutputType | null
   _avg: ExpenseSplitAvgAggregateOutputType | null
@@ -219,6 +226,7 @@ export type ExpenseSplitWhereInput = {
   id?: Prisma.IntFilter<"ExpenseSplit"> | number
   expenseId?: Prisma.IntFilter<"ExpenseSplit"> | number
   userId?: Prisma.IntFilter<"ExpenseSplit"> | number
+  status?: Prisma.EnumSplitStatusFilter<"ExpenseSplit"> | $Enums.SplitStatus
   amount?: Prisma.BigIntFilter<"ExpenseSplit"> | bigint | number
   expense?: Prisma.XOR<Prisma.ExpenseScalarRelationFilter, Prisma.ExpenseWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -228,6 +236,7 @@ export type ExpenseSplitOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   expenseId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   expense?: Prisma.ExpenseOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -241,6 +250,7 @@ export type ExpenseSplitWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ExpenseSplitWhereInput | Prisma.ExpenseSplitWhereInput[]
   expenseId?: Prisma.IntFilter<"ExpenseSplit"> | number
   userId?: Prisma.IntFilter<"ExpenseSplit"> | number
+  status?: Prisma.EnumSplitStatusFilter<"ExpenseSplit"> | $Enums.SplitStatus
   amount?: Prisma.BigIntFilter<"ExpenseSplit"> | bigint | number
   expense?: Prisma.XOR<Prisma.ExpenseScalarRelationFilter, Prisma.ExpenseWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -250,6 +260,7 @@ export type ExpenseSplitOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   expenseId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   _count?: Prisma.ExpenseSplitCountOrderByAggregateInput
   _avg?: Prisma.ExpenseSplitAvgOrderByAggregateInput
@@ -265,10 +276,12 @@ export type ExpenseSplitScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"ExpenseSplit"> | number
   expenseId?: Prisma.IntWithAggregatesFilter<"ExpenseSplit"> | number
   userId?: Prisma.IntWithAggregatesFilter<"ExpenseSplit"> | number
+  status?: Prisma.EnumSplitStatusWithAggregatesFilter<"ExpenseSplit"> | $Enums.SplitStatus
   amount?: Prisma.BigIntWithAggregatesFilter<"ExpenseSplit"> | bigint | number
 }
 
 export type ExpenseSplitCreateInput = {
+  status?: $Enums.SplitStatus
   amount: bigint | number
   expense: Prisma.ExpenseCreateNestedOneWithoutSplitsInput
   user: Prisma.UserCreateNestedOneWithoutSplitsInput
@@ -278,10 +291,12 @@ export type ExpenseSplitUncheckedCreateInput = {
   id?: number
   expenseId: number
   userId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
 export type ExpenseSplitUpdateInput = {
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   expense?: Prisma.ExpenseUpdateOneRequiredWithoutSplitsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutSplitsNestedInput
@@ -291,6 +306,7 @@ export type ExpenseSplitUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
@@ -298,10 +314,12 @@ export type ExpenseSplitCreateManyInput = {
   id?: number
   expenseId: number
   userId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
 export type ExpenseSplitUpdateManyMutationInput = {
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
@@ -309,6 +327,7 @@ export type ExpenseSplitUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
@@ -331,6 +350,7 @@ export type ExpenseSplitCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   expenseId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   amount?: Prisma.SortOrder
 }
 
@@ -345,6 +365,7 @@ export type ExpenseSplitMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   expenseId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   amount?: Prisma.SortOrder
 }
 
@@ -352,6 +373,7 @@ export type ExpenseSplitMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   expenseId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   amount?: Prisma.SortOrder
 }
 
@@ -446,7 +468,12 @@ export type ExpenseSplitUncheckedUpdateManyWithoutExpenseNestedInput = {
   deleteMany?: Prisma.ExpenseSplitScalarWhereInput | Prisma.ExpenseSplitScalarWhereInput[]
 }
 
+export type EnumSplitStatusFieldUpdateOperationsInput = {
+  set?: $Enums.SplitStatus
+}
+
 export type ExpenseSplitCreateWithoutUserInput = {
+  status?: $Enums.SplitStatus
   amount: bigint | number
   expense: Prisma.ExpenseCreateNestedOneWithoutSplitsInput
 }
@@ -454,6 +481,7 @@ export type ExpenseSplitCreateWithoutUserInput = {
 export type ExpenseSplitUncheckedCreateWithoutUserInput = {
   id?: number
   expenseId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
@@ -490,10 +518,12 @@ export type ExpenseSplitScalarWhereInput = {
   id?: Prisma.IntFilter<"ExpenseSplit"> | number
   expenseId?: Prisma.IntFilter<"ExpenseSplit"> | number
   userId?: Prisma.IntFilter<"ExpenseSplit"> | number
+  status?: Prisma.EnumSplitStatusFilter<"ExpenseSplit"> | $Enums.SplitStatus
   amount?: Prisma.BigIntFilter<"ExpenseSplit"> | bigint | number
 }
 
 export type ExpenseSplitCreateWithoutExpenseInput = {
+  status?: $Enums.SplitStatus
   amount: bigint | number
   user: Prisma.UserCreateNestedOneWithoutSplitsInput
 }
@@ -501,6 +531,7 @@ export type ExpenseSplitCreateWithoutExpenseInput = {
 export type ExpenseSplitUncheckedCreateWithoutExpenseInput = {
   id?: number
   userId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
@@ -533,10 +564,12 @@ export type ExpenseSplitUpdateManyWithWhereWithoutExpenseInput = {
 export type ExpenseSplitCreateManyUserInput = {
   id?: number
   expenseId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
 export type ExpenseSplitUpdateWithoutUserInput = {
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   expense?: Prisma.ExpenseUpdateOneRequiredWithoutSplitsNestedInput
 }
@@ -544,22 +577,26 @@ export type ExpenseSplitUpdateWithoutUserInput = {
 export type ExpenseSplitUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
 export type ExpenseSplitUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
 export type ExpenseSplitCreateManyExpenseInput = {
   id?: number
   userId: number
+  status?: $Enums.SplitStatus
   amount: bigint | number
 }
 
 export type ExpenseSplitUpdateWithoutExpenseInput = {
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   user?: Prisma.UserUpdateOneRequiredWithoutSplitsNestedInput
 }
@@ -567,12 +604,14 @@ export type ExpenseSplitUpdateWithoutExpenseInput = {
 export type ExpenseSplitUncheckedUpdateWithoutExpenseInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
 export type ExpenseSplitUncheckedUpdateManyWithoutExpenseInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSplitStatusFieldUpdateOperationsInput | $Enums.SplitStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
 }
 
@@ -582,6 +621,7 @@ export type ExpenseSplitSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   expenseId?: boolean
   userId?: boolean
+  status?: boolean
   amount?: boolean
   expense?: boolean | Prisma.ExpenseDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -591,6 +631,7 @@ export type ExpenseSplitSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   expenseId?: boolean
   userId?: boolean
+  status?: boolean
   amount?: boolean
   expense?: boolean | Prisma.ExpenseDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -600,6 +641,7 @@ export type ExpenseSplitSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   expenseId?: boolean
   userId?: boolean
+  status?: boolean
   amount?: boolean
   expense?: boolean | Prisma.ExpenseDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -609,10 +651,11 @@ export type ExpenseSplitSelectScalar = {
   id?: boolean
   expenseId?: boolean
   userId?: boolean
+  status?: boolean
   amount?: boolean
 }
 
-export type ExpenseSplitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expenseId" | "userId" | "amount", ExtArgs["result"]["expenseSplit"]>
+export type ExpenseSplitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "expenseId" | "userId" | "status" | "amount", ExtArgs["result"]["expenseSplit"]>
 export type ExpenseSplitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   expense?: boolean | Prisma.ExpenseDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -636,6 +679,7 @@ export type $ExpenseSplitPayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: number
     expenseId: number
     userId: number
+    status: $Enums.SplitStatus
     amount: bigint
   }, ExtArgs["result"]["expenseSplit"]>
   composites: {}
@@ -1065,6 +1109,7 @@ export interface ExpenseSplitFieldRefs {
   readonly id: Prisma.FieldRef<"ExpenseSplit", 'Int'>
   readonly expenseId: Prisma.FieldRef<"ExpenseSplit", 'Int'>
   readonly userId: Prisma.FieldRef<"ExpenseSplit", 'Int'>
+  readonly status: Prisma.FieldRef<"ExpenseSplit", 'SplitStatus'>
   readonly amount: Prisma.FieldRef<"ExpenseSplit", 'BigInt'>
 }
     
