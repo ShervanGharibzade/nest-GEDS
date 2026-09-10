@@ -1,14 +1,12 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateExpenseSplitDto } from './dto/create-expense-split.dto.js';
 import { UpdateExpenseSplitDto } from './dto/update-expense-split.dto.js';
-import { waitForDebugger } from 'inspector';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { totalmem } from 'os';
 
 @Injectable()
 export class ExpenseSplitService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(createExpenseSplitDto: CreateExpenseSplitDto): Promise<any> {
+  async create(createExpenseSplitDto: CreateExpenseSplitDto) {
     const debt =
       createExpenseSplitDto.amount / createExpenseSplitDto.totalMember;
 
@@ -28,8 +26,28 @@ export class ExpenseSplitService {
     });
   }
 
-  findAll() {
-    return `This action returns all expenseSplit`;
+  async findAllSplitGroup(groupId: number, userId: number) {
+    const splits = await this.prisma.expenseSplit.findMany({
+      where: {
+        userId: userId,
+        expense: {
+          groupId,
+        },
+      },
+      select: {
+        id: true,
+        amount: true,
+        expenseId: true,
+        userId: true,
+      },
+    });
+
+    const total = splits.reduce((sum, split) => sum + split.amount, 0n);
+
+    return {
+      splits,
+      total,
+    };
   }
 
   findOne(id: number) {

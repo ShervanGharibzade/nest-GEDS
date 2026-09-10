@@ -3,9 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -25,7 +23,7 @@ export class ExpenseController {
   async create(
     @Body() createExpenseDto: CreateExpenseDto,
     @Req() req: Request,
-  ) {
+  ): Promise<string> {
     const refreshToken = this.extractRefreshToken(req);
 
     const { id } =

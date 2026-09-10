@@ -13,6 +13,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt.auth.guard.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { TrnasactionModule } from './trnasaction/trnasaction.module.js';
+import { TransactionModule } from './transaction/transaction.module.js';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { PrismaModule } from './prisma/prisma.module.js';
     ExpenseSplitModule,
     AppRedisModule,
     AuthModule,
+    TrnasactionModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [

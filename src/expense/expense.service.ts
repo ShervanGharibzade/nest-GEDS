@@ -5,15 +5,14 @@ import {
 } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { ExpenseSplitService } from '../expense-split/expense-split.service.js';
 
 @Injectable()
 export class ExpenseService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly expenseSplit: ExpenseSplitService,
-  ) {}
-  async create(createExpenseDto: CreateExpenseDto, reqId: number) {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(
+    createExpenseDto: CreateExpenseDto,
+    reqId: number,
+  ): Promise<string> {
     const { amount, description, groupId } = createExpenseDto;
 
     if (amount <= 0) {
@@ -61,7 +60,7 @@ export class ExpenseService {
 
     const debt = amount / groupMembers.length;
 
-    const expense = await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const expense = await tx.expense.create({
         data: {
           amount,
@@ -71,18 +70,20 @@ export class ExpenseService {
         },
       });
 
-      await tx.expenseSplit.createMany({
-        data: groupMembers.map((member) => ({
+      const splits = groupMembers
+        .filter((member) => member.userId !== expense.paidById)
+        .map((member) => ({
           amount: debt,
           expenseId: expense.id,
           userId: member.userId,
-        })),
-      });
+        }));
 
-      return expense;
+      await tx.expenseSplit.createMany({
+        data: splits,
+      });
     });
 
-    return expense;
+    return 'Expense created successfully';
   }
 
   async findAll() {
