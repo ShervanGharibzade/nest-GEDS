@@ -1,52 +1,28 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, ParseUUIDPipe } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ExpenseService } from './expense.service.js';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
-import type { Request } from 'express';
-import { DecodeTokenService } from '../auth/jwt/decode-token.service.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
-@Controller('expense')
+@ApiTags('Expenses')
+@ApiBearerAuth()
+@Controller('expenses')
 export class ExpenseController {
-  constructor(
-    private readonly expenseService: ExpenseService,
-    private readonly decodeTokenService: DecodeTokenService,
-  ) {}
+  constructor(private readonly expenses: ExpenseService) {}
 
   @Post()
-  async create(
-    @Body() createExpenseDto: CreateExpenseDto,
-    @Req() req: Request,
-  ): Promise<string> {
-    const refreshToken = this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.expenseService.create(createExpenseDto, id);
+  create(@Body() dto: CreateExpenseDto, @CurrentUser() user: AuthUser) {
+    return this.expenses.create(dto, user.sub);
   }
 
   @Get()
-  findAll() {
-    return this.expenseService.findAll();
+  findAll(@CurrentUser() user: AuthUser) {
+    return this.expenses.findAll(user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.expenseService.findOne(+id);
-  }
-
-  private extractRefreshToken(request: Request): string {
-    const token = request.cookies?.['refresh_token'];
-    if (!token) {
-      throw new UnauthorizedException('Refresh token missing');
-    }
-    return token;
+  @Get(':uuid')
+  findOne(@Param('uuid', ParseUUIDPipe) uuid: string, @CurrentUser() user: AuthUser) {
+    return this.expenses.findOne(uuid, user.sub);
   }
 }

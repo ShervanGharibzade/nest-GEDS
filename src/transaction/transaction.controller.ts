@@ -1,39 +1,33 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, ParseUUIDPipe } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service.js';
 import { CreateTransactionDto } from './dto/create-transaction.dto.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
-@Controller('transaction')
+@ApiTags('Transactions')
+@ApiBearerAuth()
+@Controller('transactions')
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(private readonly transactions: TransactionService) {}
 
   @Post()
-  async create(
-    @Body() createTransactionDto: CreateTransactionDto,
-  ): Promise<any> {
-    return await this.transactionService.create(createTransactionDto);
+  pay(@Body() dto: CreateTransactionDto, @CurrentUser() user: AuthUser) {
+    return this.transactions.create(dto, user.sub);
   }
 
-  @Get()
-  findAll() {
-    return this.transactionService.findAll();
+  @Get('mine')
+  mine(@CurrentUser() user: AuthUser) {
+    return this.transactions.myTransactions(user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionService.findOne(+id);
+  @Get('group/:groupUuid')
+  groupHistory(@Param('groupUuid', ParseUUIDPipe) groupUuid: string, @CurrentUser() user: AuthUser) {
+    return this.transactions.groupHistory(groupUuid, user.sub);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionService.remove(+id);
+  @Get(':uuid')
+  findOne(@Param('uuid', ParseUUIDPipe) uuid: string, @CurrentUser() user: AuthUser) {
+    return this.transactions.findOne(uuid, user.sub);
   }
 }

@@ -42,6 +42,7 @@ export type ExpenseSumAggregateOutputType = {
 
 export type ExpenseMinAggregateOutputType = {
   id: number | null
+  uuid: string | null
   groupId: number | null
   paidById: number | null
   description: string | null
@@ -52,6 +53,7 @@ export type ExpenseMinAggregateOutputType = {
 
 export type ExpenseMaxAggregateOutputType = {
   id: number | null
+  uuid: string | null
   groupId: number | null
   paidById: number | null
   description: string | null
@@ -62,6 +64,7 @@ export type ExpenseMaxAggregateOutputType = {
 
 export type ExpenseCountAggregateOutputType = {
   id: number
+  uuid: number
   groupId: number
   paidById: number
   description: number
@@ -88,6 +91,7 @@ export type ExpenseSumAggregateInputType = {
 
 export type ExpenseMinAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   paidById?: true
   description?: true
@@ -98,6 +102,7 @@ export type ExpenseMinAggregateInputType = {
 
 export type ExpenseMaxAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   paidById?: true
   description?: true
@@ -108,6 +113,7 @@ export type ExpenseMaxAggregateInputType = {
 
 export type ExpenseCountAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   paidById?: true
   description?: true
@@ -205,6 +211,7 @@ export type ExpenseGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 
 export type ExpenseGroupByOutputType = {
   id: number
+  uuid: string
   groupId: number
   paidById: number
   description: string
@@ -238,6 +245,7 @@ export type ExpenseWhereInput = {
   OR?: Prisma.ExpenseWhereInput[]
   NOT?: Prisma.ExpenseWhereInput | Prisma.ExpenseWhereInput[]
   id?: Prisma.IntFilter<"Expense"> | number
+  uuid?: Prisma.StringFilter<"Expense"> | string
   groupId?: Prisma.IntFilter<"Expense"> | number
   paidById?: Prisma.IntFilter<"Expense"> | number
   description?: Prisma.StringFilter<"Expense"> | string
@@ -251,6 +259,7 @@ export type ExpenseWhereInput = {
 
 export type ExpenseOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -264,6 +273,7 @@ export type ExpenseOrderByWithRelationInput = {
 
 export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  uuid?: string
   AND?: Prisma.ExpenseWhereInput | Prisma.ExpenseWhereInput[]
   OR?: Prisma.ExpenseWhereInput[]
   NOT?: Prisma.ExpenseWhereInput | Prisma.ExpenseWhereInput[]
@@ -276,10 +286,11 @@ export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
   group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
   paidBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   splits?: Prisma.ExpenseSplitListRelationFilter
-}, "id">
+}, "id" | "uuid">
 
 export type ExpenseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -298,6 +309,7 @@ export type ExpenseScalarWhereWithAggregatesInput = {
   OR?: Prisma.ExpenseScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ExpenseScalarWhereWithAggregatesInput | Prisma.ExpenseScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Expense"> | number
+  uuid?: Prisma.StringWithAggregatesFilter<"Expense"> | string
   groupId?: Prisma.IntWithAggregatesFilter<"Expense"> | number
   paidById?: Prisma.IntWithAggregatesFilter<"Expense"> | number
   description?: Prisma.StringWithAggregatesFilter<"Expense"> | string
@@ -307,6 +319,7 @@ export type ExpenseScalarWhereWithAggregatesInput = {
 }
 
 export type ExpenseCreateInput = {
+  uuid?: string
   description: string
   status?: $Enums.ExpenseStatus
   amount: bigint | number
@@ -318,6 +331,7 @@ export type ExpenseCreateInput = {
 
 export type ExpenseUncheckedCreateInput = {
   id?: number
+  uuid?: string
   groupId: number
   paidById: number
   description: string
@@ -328,6 +342,7 @@ export type ExpenseUncheckedCreateInput = {
 }
 
 export type ExpenseUpdateInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -339,6 +354,7 @@ export type ExpenseUpdateInput = {
 
 export type ExpenseUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   paidById?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -350,6 +366,7 @@ export type ExpenseUncheckedUpdateInput = {
 
 export type ExpenseCreateManyInput = {
   id?: number
+  uuid?: string
   groupId: number
   paidById: number
   description: string
@@ -359,6 +376,7 @@ export type ExpenseCreateManyInput = {
 }
 
 export type ExpenseUpdateManyMutationInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -367,6 +385,7 @@ export type ExpenseUpdateManyMutationInput = {
 
 export type ExpenseUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   paidById?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -387,6 +406,7 @@ export type ExpenseOrderByRelationAggregateInput = {
 
 export type ExpenseCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -404,6 +424,7 @@ export type ExpenseAvgOrderByAggregateInput = {
 
 export type ExpenseMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -414,6 +435,7 @@ export type ExpenseMaxOrderByAggregateInput = {
 
 export type ExpenseMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -545,6 +567,7 @@ export type ExpenseUpdateOneRequiredWithoutSplitsNestedInput = {
 }
 
 export type ExpenseCreateWithoutPaidByInput = {
+  uuid?: string
   description: string
   status?: $Enums.ExpenseStatus
   amount: bigint | number
@@ -555,6 +578,7 @@ export type ExpenseCreateWithoutPaidByInput = {
 
 export type ExpenseUncheckedCreateWithoutPaidByInput = {
   id?: number
+  uuid?: string
   groupId: number
   description: string
   status?: $Enums.ExpenseStatus
@@ -594,6 +618,7 @@ export type ExpenseScalarWhereInput = {
   OR?: Prisma.ExpenseScalarWhereInput[]
   NOT?: Prisma.ExpenseScalarWhereInput | Prisma.ExpenseScalarWhereInput[]
   id?: Prisma.IntFilter<"Expense"> | number
+  uuid?: Prisma.StringFilter<"Expense"> | string
   groupId?: Prisma.IntFilter<"Expense"> | number
   paidById?: Prisma.IntFilter<"Expense"> | number
   description?: Prisma.StringFilter<"Expense"> | string
@@ -603,6 +628,7 @@ export type ExpenseScalarWhereInput = {
 }
 
 export type ExpenseCreateWithoutGroupInput = {
+  uuid?: string
   description: string
   status?: $Enums.ExpenseStatus
   amount: bigint | number
@@ -613,6 +639,7 @@ export type ExpenseCreateWithoutGroupInput = {
 
 export type ExpenseUncheckedCreateWithoutGroupInput = {
   id?: number
+  uuid?: string
   paidById: number
   description: string
   status?: $Enums.ExpenseStatus
@@ -648,6 +675,7 @@ export type ExpenseUpdateManyWithWhereWithoutGroupInput = {
 }
 
 export type ExpenseCreateWithoutSplitsInput = {
+  uuid?: string
   description: string
   status?: $Enums.ExpenseStatus
   amount: bigint | number
@@ -658,6 +686,7 @@ export type ExpenseCreateWithoutSplitsInput = {
 
 export type ExpenseUncheckedCreateWithoutSplitsInput = {
   id?: number
+  uuid?: string
   groupId: number
   paidById: number
   description: string
@@ -683,6 +712,7 @@ export type ExpenseUpdateToOneWithWhereWithoutSplitsInput = {
 }
 
 export type ExpenseUpdateWithoutSplitsInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -693,6 +723,7 @@ export type ExpenseUpdateWithoutSplitsInput = {
 
 export type ExpenseUncheckedUpdateWithoutSplitsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   paidById?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -703,6 +734,7 @@ export type ExpenseUncheckedUpdateWithoutSplitsInput = {
 
 export type ExpenseCreateManyPaidByInput = {
   id?: number
+  uuid?: string
   groupId: number
   description: string
   status?: $Enums.ExpenseStatus
@@ -711,6 +743,7 @@ export type ExpenseCreateManyPaidByInput = {
 }
 
 export type ExpenseUpdateWithoutPaidByInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -721,6 +754,7 @@ export type ExpenseUpdateWithoutPaidByInput = {
 
 export type ExpenseUncheckedUpdateWithoutPaidByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
@@ -731,6 +765,7 @@ export type ExpenseUncheckedUpdateWithoutPaidByInput = {
 
 export type ExpenseUncheckedUpdateManyWithoutPaidByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
@@ -740,6 +775,7 @@ export type ExpenseUncheckedUpdateManyWithoutPaidByInput = {
 
 export type ExpenseCreateManyGroupInput = {
   id?: number
+  uuid?: string
   paidById: number
   description: string
   status?: $Enums.ExpenseStatus
@@ -748,6 +784,7 @@ export type ExpenseCreateManyGroupInput = {
 }
 
 export type ExpenseUpdateWithoutGroupInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -758,6 +795,7 @@ export type ExpenseUpdateWithoutGroupInput = {
 
 export type ExpenseUncheckedUpdateWithoutGroupInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   paidById?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
@@ -768,6 +806,7 @@ export type ExpenseUncheckedUpdateWithoutGroupInput = {
 
 export type ExpenseUncheckedUpdateManyWithoutGroupInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   paidById?: Prisma.IntFieldUpdateOperationsInput | number
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumExpenseStatusFieldUpdateOperationsInput | $Enums.ExpenseStatus
@@ -808,6 +847,7 @@ export type ExpenseCountOutputTypeCountSplitsArgs<ExtArgs extends runtime.Types.
 
 export type ExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   paidById?: boolean
   description?: boolean
@@ -822,6 +862,7 @@ export type ExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 
 export type ExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   paidById?: boolean
   description?: boolean
@@ -834,6 +875,7 @@ export type ExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 
 export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   paidById?: boolean
   description?: boolean
@@ -846,6 +888,7 @@ export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 
 export type ExpenseSelectScalar = {
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   paidById?: boolean
   description?: boolean
@@ -854,7 +897,7 @@ export type ExpenseSelectScalar = {
   createdAt?: boolean
 }
 
-export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "groupId" | "paidById" | "description" | "status" | "amount" | "createdAt", ExtArgs["result"]["expense"]>
+export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uuid" | "groupId" | "paidById" | "description" | "status" | "amount" | "createdAt", ExtArgs["result"]["expense"]>
 export type ExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -879,6 +922,7 @@ export type $ExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    uuid: string
     groupId: number
     paidById: number
     description: string
@@ -1312,6 +1356,7 @@ export interface Prisma__ExpenseClient<T, Null = never, ExtArgs extends runtime.
  */
 export interface ExpenseFieldRefs {
   readonly id: Prisma.FieldRef<"Expense", 'Int'>
+  readonly uuid: Prisma.FieldRef<"Expense", 'String'>
   readonly groupId: Prisma.FieldRef<"Expense", 'Int'>
   readonly paidById: Prisma.FieldRef<"Expense", 'Int'>
   readonly description: Prisma.FieldRef<"Expense", 'String'>

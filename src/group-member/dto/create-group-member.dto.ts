@@ -1,4 +1,9 @@
+import { IsUUID } from 'class-validator';
+
 export class AddGroupMemberDto {
-  groupId: string | number;
-  userId: string | number;
+  @IsUUID()
+  groupId: string;
+
+  @IsUUID()
+  userId: string;
 }

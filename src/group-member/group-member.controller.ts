@@ -1,64 +1,50 @@
 import {
-  Controller,
-  Get,
-  Post,
+  BadRequestException,
   Body,
-  Param,
+  Controller,
   Delete,
-  Req,
-  UnauthorizedException,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GroupMemberService } from './group-member.service.js';
 import { AddGroupMemberDto } from './dto/create-group-member.dto.js';
-import { UpdateGroupMemberDto } from './dto/update-group-member.dto.js';
-import type { Request } from 'express';
-import { DecodeTokenService } from '../auth/jwt/decode-token.service.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
-@Controller('group-member')
+@ApiTags('Group Members')
+@ApiBearerAuth()
+@Controller('groups/:groupUuid/members')
 export class GroupMemberController {
-  constructor(
-    private readonly groupMemberService: GroupMemberService,
-    private readonly decodeTokenService: DecodeTokenService,
-  ) {}
+  constructor(private readonly members: GroupMemberService) {}
 
-  @Post('/add')
-  async add(@Req() req: Request, @Body() addGroupMemberDto: AddGroupMemberDto) {
-    const refreshToken = await this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-    return this.groupMemberService.add(addGroupMemberDto, id);
+  @Post()
+  add(
+    @Param('groupUuid', ParseUUIDPipe) groupUuid: string,
+    @Body() dto: AddGroupMemberDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    if (dto.groupId !== groupUuid)
+      throw new BadRequestException('groupId does not match route');
+    return this.members.add(dto, user.sub);
   }
 
   @Get()
-  findAll() {
-    return this.groupMemberService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupMemberService.findOne(+id);
-  }
-
-  @Delete(':userId/groupId')
-  async remove(
-    @Req() req: Request,
-    @Param() userId: string,
-    @Param() groupId: string,
+  findAll(
+    @Param('groupUuid', ParseUUIDPipe) groupUuid: string,
+    @CurrentUser() user: AuthUser,
   ) {
-    const refreshToken = await this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.groupMemberService.remove(Number(groupId), Number(userId), id);
+    return this.members.findAll(groupUuid, user.sub);
   }
 
-  private extractRefreshToken(request: Request): string {
-    const token = request.cookies?.['refresh_token'];
-    if (!token) {
-      throw new UnauthorizedException('Refresh token missing');
-    }
-    return token;
+  @Delete(':userUuid')
+  remove(
+    @Param('groupUuid', ParseUUIDPipe) groupUuid: string,
+    @Param('userUuid', ParseUUIDPipe) userUuid: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.members.remove(groupUuid, userUuid, user.sub);
   }
 }

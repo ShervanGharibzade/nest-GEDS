@@ -20,7 +20,8 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "prisma:studio": "prisma studio --config ./prisma.config.ts",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "prisma:generate": "prisma generate --config ./prisma.config.ts"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.2",

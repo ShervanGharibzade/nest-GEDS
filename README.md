@@ -1,114 +1,207 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# GEDS — Group Expense & Debt Sharing
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+GEDS is a NestJS + PostgreSQL + Redis backend for groups that share expenses, split debts, record payments, and calculate group balances.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- Register/login with bcrypt password hashing.
+- Short-lived JWT access tokens.
+- HttpOnly refresh-token cookie with Redis-backed rotation and revocation.
+- UUIDs are the public identifiers; internal numeric database IDs stay server-side.
+- Groups with owner-only management and automatic owner membership.
+- Automatic, integer-safe expense splitting with remainder distribution.
+- Payer's own split is created as `PAID`; only other members owe the payer.
+- Payments atomically mark a split `PAID`, create a transaction, and close the expense when no unpaid splits remain.
+- Group balances and outstanding debtor → creditor relationships.
+- Stable response DTOs; passwords and raw Prisma users are never returned.
+- Strict request validation and authorization.
+- Swagger/OpenAPI at `/docs`.
+- PostgreSQL + Redis + API Docker Compose stack.
+- Health endpoint at `/health`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Stack
 
-## Project setup
+- NestJS
+- TypeScript
+- Prisma 7 with PostgreSQL adapter
+- PostgreSQL 17
+- Redis
+- JWT / Passport
+- bcrypt
+- class-validator / class-transformer
+- Swagger
 
-```bash
-$ pnpm install
-```
+## Setup
 
-## Compile and run the project
-
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
+1. Copy `.env.example` to `.env` and use strong, different JWT secrets.
+2. Start infrastructure:
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+docker compose up -d postgres redis
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+3. Install dependencies:
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+4. Generate Prisma Client:
 
-## Observability
+```bash
+pnpm prisma:generate
+```
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+5. Apply migrations:
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+```bash
+pnpm exec prisma migrate deploy --config ./prisma.config.ts
+```
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+6. Start the API:
 
-## Resources
+```bash
+pnpm start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+API: `http://localhost:3000`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Swagger: `http://localhost:3000/docs`
 
-## Support
+## Production
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Build the API image and start all services:
 
-## Stay in touch
+```bash
+docker compose up -d --build
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+The API waits for healthy PostgreSQL and Redis containers.
 
-## License
+For production, replace the example database credentials and JWT secrets, set `NODE_ENV=production`, configure a real `CORS_ORIGIN`, and terminate TLS at the reverse proxy/load balancer.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Authentication flow
+
+### Register
+
+`POST /auth/register`
+
+Returns a safe user DTO. The password hash is never returned.
+
+### Login
+
+`POST /auth/login`
+
+Returns an access token and sets `refresh_token` as an HttpOnly cookie.
+
+### Refresh
+
+`POST /auth/refresh`
+
+The refresh cookie is verified cryptographically and against Redis. A new refresh token is issued and the old Redis value is replaced.
+
+### Sign out
+
+`POST /auth/sign-out`
+
+Requires the access token, revokes the user's Redis refresh token, and clears the refresh cookie.
+
+Protected endpoints use the access-token JWT subject (`req.user.sub`) as the authenticated user's public UUID. They do not use the refresh cookie as the user's identity.
+
+## Core API
+
+- `POST /groups`
+- `GET /groups/mine`
+- `GET /groups/:uuid`
+- `GET /groups/:uuid/balances`
+- `PATCH /groups/:uuid`
+- `DELETE /groups/:uuid`
+- `POST /groups/:groupUuid/members`
+- `GET /groups/:groupUuid/members`
+- `DELETE /groups/:groupUuid/members/:userUuid`
+- `POST /expenses`
+- `GET /expenses`
+- `GET /expenses/:uuid`
+- `GET /groups/:groupUuid/splits/mine`
+- `POST /transactions`
+- `GET /transactions/mine`
+- `GET /transactions/group/:groupUuid`
+- `GET /transactions/:uuid`
+- `GET /users/me`
+- `GET /users` (ADMIN)
+- `PATCH /users/:uuid`
+- `PATCH /users/:uuid/role` (ADMIN)
+- `DELETE /users/:uuid`
+
+Expense splits intentionally have no public create/update/delete endpoint. They are created by the expense service and changed to `PAID` only by the transaction/payment flow.
+
+## Expense example
+
+Assume A, B and C are group members and A pays 300.
+
+The expense creates three 100-unit shares:
+
+- A: `PAID`, 100
+- B: `UNPAID`, 100
+- C: `UNPAID`, 100
+
+B and C each call `POST /transactions` with the expense UUID and exact debt amount. Each call atomically marks the split paid and records a transaction. After C pays, the expense becomes `CLOSE`.
+
+If the amount does not divide evenly, the remainder is distributed one unit at a time across the members, so the sum of all splits always equals the expense amount.
+
+## BigInt / money representation
+
+Database amounts are PostgreSQL `BIGINT`. API request amounts are positive integer strings representing the smallest currency unit. API responses serialize amounts as strings to avoid JavaScript precision loss.
+
+Example:
+
+```json
+{
+  "amount": "300"
+}
+```
+
+## Testing
+
+Unit tests:
+
+```bash
+pnpm test
+pnpm test:cov
+```
+
+E2E tests require PostgreSQL and Redis:
+
+```bash
+docker compose up -d postgres redis
+pnpm exec prisma migrate deploy --config ./prisma.config.ts
+pnpm test:e2e
+```
+
+The E2E scenario registers A/B/C, creates a group, adds members, creates an expense, pays the debts, verifies `PAID` splits, verifies `CLOSE`, checks transactions, and checks balances.
+
+## Database migrations
+
+The UUID migration uses PostgreSQL `gen_random_uuid()` as a database default, so UUID columns can be added to existing rows without relying on Prisma-level defaults.
+
+The transaction `expenseId` migration is intended for a clean database because historical transaction rows cannot be assigned an expense safely when the old schema did not store that relationship.
+
+For an existing production database with historical transactions, create a data-specific backfill plan before making `expenseId` mandatory.
+
+## Security
+
+- Access tokens are short-lived.
+- Refresh tokens are HttpOnly.
+- Refresh tokens are rotated and Redis-backed.
+- Refresh cookies become Secure in production.
+- Login/register have an in-process rate limiter.
+- CORS is explicitly configured.
+- Security response headers are enabled.
+- Required environment variables and JWT secret strength are validated at startup.
+- ValidationPipe rejects unexpected fields.
+- Password hashes never cross the API response boundary.
+- Authorization is enforced using the access-token identity.
+
+## Deliberately deferred
+
+The project does not add microservices, Kafka, CQRS, event sourcing, or WebSockets. These are outside the current Definition of Done.

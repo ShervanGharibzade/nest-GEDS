@@ -78,6 +78,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  uuid: 'uuid',
   name: 'name',
   passwordHash: 'passwordHash',
   role: 'role',
@@ -92,6 +93,7 @@ export const GroupScalarFieldEnum = {
   id: 'id',
   name: 'name',
   ownerId: 'ownerId',
+  uuid: 'uuid',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -102,6 +104,7 @@ export type GroupScalarFieldEnum = (typeof GroupScalarFieldEnum)[keyof typeof Gr
 export const GroupMemberScalarFieldEnum = {
   id: 'id',
   groupId: 'groupId',
+  uuid: 'uuid',
   userId: 'userId',
   joinedAt: 'joinedAt'
 } as const
@@ -111,6 +114,7 @@ export type GroupMemberScalarFieldEnum = (typeof GroupMemberScalarFieldEnum)[key
 
 export const ExpenseScalarFieldEnum = {
   id: 'id',
+  uuid: 'uuid',
   groupId: 'groupId',
   paidById: 'paidById',
   description: 'description',
@@ -124,6 +128,7 @@ export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeo
 
 export const ExpenseSplitScalarFieldEnum = {
   id: 'id',
+  uuid: 'uuid',
   expenseId: 'expenseId',
   userId: 'userId',
   status: 'status',
@@ -135,6 +140,7 @@ export type ExpenseSplitScalarFieldEnum = (typeof ExpenseSplitScalarFieldEnum)[k
 
 export const TransactionScalarFieldEnum = {
   id: 'id',
+  uuid: 'uuid',
   groupId: 'groupId',
   fromUserId: 'fromUserId',
   toUserId: 'toUserId',

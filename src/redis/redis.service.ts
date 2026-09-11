@@ -13,12 +13,10 @@ export class RedisService {
 
     private readonly configService: ConfigService,
   ) {
-    this.refreshTokenTtl = this.configService.getOrThrow<number>(
-      'REDIS_REFRESH_TOKEN_TTL',
-    );
+    this.refreshTokenTtl = Number(this.configService.getOrThrow<string>('REDIS_REFRESH_TOKEN_TTL'));
   }
 
-  async setRefreshToken(userId: number, token: string): Promise<void> {
+  async setRefreshToken(userId: string, token: string): Promise<void> {
     await this.redis.set(
       `refresh_token:${userId}`,
       token,
@@ -27,11 +25,13 @@ export class RedisService {
     );
   }
 
-  async getRefreshToken(userId: number): Promise<string | null> {
+  async getRefreshToken(userId: string): Promise<string | null> {
     return this.redis.get(`refresh_token:${userId}`);
   }
 
-  async deleteRefreshToken(userId: number): Promise<void> {
+  async ping(): Promise<string> { return this.redis.ping(); }
+
+  async deleteRefreshToken(userId: string): Promise<void> {
     await this.redis.del(`refresh_token:${userId}`);
   }
 }

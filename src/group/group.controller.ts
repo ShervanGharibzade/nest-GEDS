@@ -4,90 +4,73 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
-  Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-
-import type { Request } from 'express';
-
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GroupService } from './group.service.js';
-
 import { CreateGroupDto } from './dto/create-group.dto.js';
 import { UpdateGroupDto } from './dto/update-group.dto.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { DecodeTokenService } from '../auth/jwt/decode-token.service.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
-@Controller('group')
+@ApiTags('Groups')
+@ApiBearerAuth()
+@Controller('groups')
 export class GroupController {
-  constructor(
-    private readonly groupService: GroupService,
-    private readonly decodeTokenService: DecodeTokenService,
-  ) {}
+  constructor(private readonly groups: GroupService) {}
 
   @Post()
-  async create(@Body() createGroupDto: CreateGroupDto, @Req() req: Request) {
-    const refreshToken = this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.groupService.create(createGroupDto, id);
+  create(@Body() dto: CreateGroupDto, @CurrentUser() user: AuthUser) {
+    return this.groups.create(dto, user.sub);
   }
 
   @Get()
   @UseGuards(RolesGuard)
+  @Roles('ADMIN')
   findAll() {
-    return this.groupService.findAll();
+    return this.groups.findAll();
   }
 
-  @Get('my')
-  async myGroups(@Req() req: Request) {
-    const refreshToken = this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.groupService.myGroups(id);
+  @Get('mine')
+  myGroups(@CurrentUser() user: AuthUser) {
+    return this.groups.myGroups(user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.groupService.findOne(id);
-  }
-
-  @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) reqId: number,
-    @Body() updateGroupDto: UpdateGroupDto,
-    @Req() req: Request,
+  @Get(':uuid/balances')
+  balances(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @CurrentUser() user: AuthUser,
   ) {
-    const refreshToken = this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.groupService.update(reqId, updateGroupDto, id);
+    return this.groups.balances(uuid, user.sub);
   }
 
-  @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) reqId: number, @Req() req: Request) {
-    const refreshToken = this.extractRefreshToken(req);
-
-    const { id } =
-      await this.decodeTokenService.decodeRefreshToken(refreshToken);
-
-    return this.groupService.remove(reqId, id);
+  @Get(':uuid')
+  findOne(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.groups.findOne(uuid, user.sub);
   }
 
-  private extractRefreshToken(request: Request): string {
-    const token = request.cookies?.['refresh_token'];
-    if (!token) {
-      throw new UnauthorizedException('Refresh token missing');
-    }
-    return token;
+  @Patch(':uuid')
+  update(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body() dto: UpdateGroupDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.groups.update(uuid, dto, user.sub);
+  }
+
+  @Delete(':uuid')
+  remove(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.groups.remove(uuid, user.sub);
   }
 }

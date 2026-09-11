@@ -1,34 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ExpenseSplitService } from './expense-split.service.js';
-import { CreateExpenseSplitDto } from './dto/create-expense-split.dto.js';
-import { UpdateExpenseSplitDto } from './dto/update-expense-split.dto.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
-@Controller('expense-split')
+@ApiTags('Expense Splits')
+@ApiBearerAuth()
+@Controller('groups/:groupUuid/splits')
 export class ExpenseSplitController {
-  constructor(private readonly expenseSplitService: ExpenseSplitService) {}
+  constructor(private readonly splits: ExpenseSplitService) {}
 
-  @Post()
-  create(@Body() createExpenseSplitDto: CreateExpenseSplitDto) {
-    return this.expenseSplitService.create(createExpenseSplitDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.expenseSplitService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.expenseSplitService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateExpenseSplitDto: UpdateExpenseSplitDto) {
-    return this.expenseSplitService.update(+id, updateExpenseSplitDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.expenseSplitService.remove(+id);
+  @Get('mine')
+  mine(@Param('groupUuid', ParseUUIDPipe) groupUuid: string, @CurrentUser() user: AuthUser) {
+    return this.splits.mine(groupUuid, user.sub);
   }
 }

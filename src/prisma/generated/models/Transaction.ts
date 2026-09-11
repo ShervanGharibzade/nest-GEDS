@@ -46,6 +46,7 @@ export type TransactionSumAggregateOutputType = {
 
 export type TransactionMinAggregateOutputType = {
   id: number | null
+  uuid: string | null
   groupId: number | null
   fromUserId: number | null
   toUserId: number | null
@@ -57,6 +58,7 @@ export type TransactionMinAggregateOutputType = {
 
 export type TransactionMaxAggregateOutputType = {
   id: number | null
+  uuid: string | null
   groupId: number | null
   fromUserId: number | null
   toUserId: number | null
@@ -68,6 +70,7 @@ export type TransactionMaxAggregateOutputType = {
 
 export type TransactionCountAggregateOutputType = {
   id: number
+  uuid: number
   groupId: number
   fromUserId: number
   toUserId: number
@@ -99,6 +102,7 @@ export type TransactionSumAggregateInputType = {
 
 export type TransactionMinAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   fromUserId?: true
   toUserId?: true
@@ -110,6 +114,7 @@ export type TransactionMinAggregateInputType = {
 
 export type TransactionMaxAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   fromUserId?: true
   toUserId?: true
@@ -121,6 +126,7 @@ export type TransactionMaxAggregateInputType = {
 
 export type TransactionCountAggregateInputType = {
   id?: true
+  uuid?: true
   groupId?: true
   fromUserId?: true
   toUserId?: true
@@ -219,6 +225,7 @@ export type TransactionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type TransactionGroupByOutputType = {
   id: number
+  uuid: string
   groupId: number
   fromUserId: number
   toUserId: number
@@ -253,6 +260,7 @@ export type TransactionWhereInput = {
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   id?: Prisma.IntFilter<"Transaction"> | number
+  uuid?: Prisma.StringFilter<"Transaction"> | string
   groupId?: Prisma.IntFilter<"Transaction"> | number
   fromUserId?: Prisma.IntFilter<"Transaction"> | number
   toUserId?: Prisma.IntFilter<"Transaction"> | number
@@ -267,6 +275,7 @@ export type TransactionWhereInput = {
 
 export type TransactionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
@@ -281,6 +290,7 @@ export type TransactionOrderByWithRelationInput = {
 
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  uuid?: string
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
@@ -294,10 +304,11 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
   fromUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   toUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+}, "id" | "uuid">
 
 export type TransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
@@ -317,6 +328,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   OR?: Prisma.TransactionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TransactionScalarWhereWithAggregatesInput | Prisma.TransactionScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
+  uuid?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   groupId?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
   fromUserId?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
   toUserId?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
@@ -327,6 +339,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
 }
 
 export type TransactionCreateInput = {
+  uuid?: string
   expenseId: number
   amount: bigint | number
   description?: string | null
@@ -338,6 +351,7 @@ export type TransactionCreateInput = {
 
 export type TransactionUncheckedCreateInput = {
   id?: number
+  uuid?: string
   groupId: number
   fromUserId: number
   toUserId: number
@@ -348,6 +362,7 @@ export type TransactionUncheckedCreateInput = {
 }
 
 export type TransactionUpdateInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -359,6 +374,7 @@ export type TransactionUpdateInput = {
 
 export type TransactionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -370,6 +386,7 @@ export type TransactionUncheckedUpdateInput = {
 
 export type TransactionCreateManyInput = {
   id?: number
+  uuid?: string
   groupId: number
   fromUserId: number
   toUserId: number
@@ -380,6 +397,7 @@ export type TransactionCreateManyInput = {
 }
 
 export type TransactionUpdateManyMutationInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -388,6 +406,7 @@ export type TransactionUpdateManyMutationInput = {
 
 export type TransactionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -409,6 +428,7 @@ export type TransactionOrderByRelationAggregateInput = {
 
 export type TransactionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
@@ -429,6 +449,7 @@ export type TransactionAvgOrderByAggregateInput = {
 
 export type TransactionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
@@ -440,6 +461,7 @@ export type TransactionMaxOrderByAggregateInput = {
 
 export type TransactionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  uuid?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
@@ -589,6 +611,7 @@ export type NullableStringFieldUpdateOperationsInput = {
 }
 
 export type TransactionCreateWithoutFromUserInput = {
+  uuid?: string
   expenseId: number
   amount: bigint | number
   description?: string | null
@@ -599,6 +622,7 @@ export type TransactionCreateWithoutFromUserInput = {
 
 export type TransactionUncheckedCreateWithoutFromUserInput = {
   id?: number
+  uuid?: string
   groupId: number
   toUserId: number
   expenseId: number
@@ -618,6 +642,7 @@ export type TransactionCreateManyFromUserInputEnvelope = {
 }
 
 export type TransactionCreateWithoutToUserInput = {
+  uuid?: string
   expenseId: number
   amount: bigint | number
   description?: string | null
@@ -628,6 +653,7 @@ export type TransactionCreateWithoutToUserInput = {
 
 export type TransactionUncheckedCreateWithoutToUserInput = {
   id?: number
+  uuid?: string
   groupId: number
   fromUserId: number
   expenseId: number
@@ -667,6 +693,7 @@ export type TransactionScalarWhereInput = {
   OR?: Prisma.TransactionScalarWhereInput[]
   NOT?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
   id?: Prisma.IntFilter<"Transaction"> | number
+  uuid?: Prisma.StringFilter<"Transaction"> | string
   groupId?: Prisma.IntFilter<"Transaction"> | number
   fromUserId?: Prisma.IntFilter<"Transaction"> | number
   toUserId?: Prisma.IntFilter<"Transaction"> | number
@@ -693,6 +720,7 @@ export type TransactionUpdateManyWithWhereWithoutToUserInput = {
 }
 
 export type TransactionCreateWithoutGroupInput = {
+  uuid?: string
   expenseId: number
   amount: bigint | number
   description?: string | null
@@ -703,6 +731,7 @@ export type TransactionCreateWithoutGroupInput = {
 
 export type TransactionUncheckedCreateWithoutGroupInput = {
   id?: number
+  uuid?: string
   fromUserId: number
   toUserId: number
   expenseId: number
@@ -739,6 +768,7 @@ export type TransactionUpdateManyWithWhereWithoutGroupInput = {
 
 export type TransactionCreateManyFromUserInput = {
   id?: number
+  uuid?: string
   groupId: number
   toUserId: number
   expenseId: number
@@ -749,6 +779,7 @@ export type TransactionCreateManyFromUserInput = {
 
 export type TransactionCreateManyToUserInput = {
   id?: number
+  uuid?: string
   groupId: number
   fromUserId: number
   expenseId: number
@@ -758,6 +789,7 @@ export type TransactionCreateManyToUserInput = {
 }
 
 export type TransactionUpdateWithoutFromUserInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -768,6 +800,7 @@ export type TransactionUpdateWithoutFromUserInput = {
 
 export type TransactionUncheckedUpdateWithoutFromUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -778,6 +811,7 @@ export type TransactionUncheckedUpdateWithoutFromUserInput = {
 
 export type TransactionUncheckedUpdateManyWithoutFromUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -787,6 +821,7 @@ export type TransactionUncheckedUpdateManyWithoutFromUserInput = {
 }
 
 export type TransactionUpdateWithoutToUserInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -797,6 +832,7 @@ export type TransactionUpdateWithoutToUserInput = {
 
 export type TransactionUncheckedUpdateWithoutToUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -807,6 +843,7 @@ export type TransactionUncheckedUpdateWithoutToUserInput = {
 
 export type TransactionUncheckedUpdateManyWithoutToUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.IntFieldUpdateOperationsInput | number
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -817,6 +854,7 @@ export type TransactionUncheckedUpdateManyWithoutToUserInput = {
 
 export type TransactionCreateManyGroupInput = {
   id?: number
+  uuid?: string
   fromUserId: number
   toUserId: number
   expenseId: number
@@ -826,6 +864,7 @@ export type TransactionCreateManyGroupInput = {
 }
 
 export type TransactionUpdateWithoutGroupInput = {
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
   amount?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -836,6 +875,7 @@ export type TransactionUpdateWithoutGroupInput = {
 
 export type TransactionUncheckedUpdateWithoutGroupInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -846,6 +886,7 @@ export type TransactionUncheckedUpdateWithoutGroupInput = {
 
 export type TransactionUncheckedUpdateManyWithoutGroupInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  uuid?: Prisma.StringFieldUpdateOperationsInput | string
   fromUserId?: Prisma.IntFieldUpdateOperationsInput | number
   toUserId?: Prisma.IntFieldUpdateOperationsInput | number
   expenseId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -858,6 +899,7 @@ export type TransactionUncheckedUpdateManyWithoutGroupInput = {
 
 export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   fromUserId?: boolean
   toUserId?: boolean
@@ -872,6 +914,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   fromUserId?: boolean
   toUserId?: boolean
@@ -886,6 +929,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   fromUserId?: boolean
   toUserId?: boolean
@@ -900,6 +944,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type TransactionSelectScalar = {
   id?: boolean
+  uuid?: boolean
   groupId?: boolean
   fromUserId?: boolean
   toUserId?: boolean
@@ -909,7 +954,7 @@ export type TransactionSelectScalar = {
   createdAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "groupId" | "fromUserId" | "toUserId" | "expenseId" | "amount" | "description" | "createdAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uuid" | "groupId" | "fromUserId" | "toUserId" | "expenseId" | "amount" | "description" | "createdAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -935,6 +980,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    uuid: string
     groupId: number
     fromUserId: number
     toUserId: number
@@ -1369,6 +1415,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
  */
 export interface TransactionFieldRefs {
   readonly id: Prisma.FieldRef<"Transaction", 'Int'>
+  readonly uuid: Prisma.FieldRef<"Transaction", 'String'>
   readonly groupId: Prisma.FieldRef<"Transaction", 'Int'>
   readonly fromUserId: Prisma.FieldRef<"Transaction", 'Int'>
   readonly toUserId: Prisma.FieldRef<"Transaction", 'Int'>

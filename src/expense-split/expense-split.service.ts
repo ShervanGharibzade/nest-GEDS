@@ -1,64 +1,35 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { CreateExpenseSplitDto } from './dto/create-expense-split.dto.js';
-import { UpdateExpenseSplitDto } from './dto/update-expense-split.dto.js';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+
+const USER = { uuid: true, name: true, email: true } as const;
 
 @Injectable()
 export class ExpenseSplitService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(createExpenseSplitDto: CreateExpenseSplitDto) {
-    const debt =
-      createExpenseSplitDto.amount / createExpenseSplitDto.totalMember;
 
-    if (createExpenseSplitDto.totalMember <= 0) {
-      throw new ForbiddenException('something wrong');
-    }
-    if (debt <= 0) {
-      throw new ForbiddenException('something wrong');
-    }
+  async mine(groupUuid: string, userUuid: string) {
+    const user = await this.prisma.user.findUnique({ where: { uuid: userUuid }, select: { id: true } });
+    if (!user) throw new NotFoundException('User not found');
 
-    const split = await this.prisma.expenseSplit.create({
-      data: {
-        amount: debt,
-        expenseId: createExpenseSplitDto.expenseId,
-        userId: createExpenseSplitDto.userId,
-      },
+    const group = await this.prisma.group.findUnique({ where: { uuid: groupUuid }, select: { id: true } });
+    if (!group) throw new NotFoundException('Group not found');
+
+    const member = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId: group.id, userId: user.id } },
     });
-  }
+    if (!member) throw new ForbiddenException('You are not a member of this group');
 
-  async findAllSplitGroup(groupId: number, userId: number) {
     const splits = await this.prisma.expenseSplit.findMany({
-      where: {
-        userId: userId,
-        expense: {
-          groupId,
-        },
-      },
-      select: {
-        id: true,
-        amount: true,
-        expenseId: true,
-        userId: true,
-      },
+      where: { userId: user.id, expense: { groupId: group.id } },
+      include: { expense: { select: { uuid: true } }, user: { select: USER } },
+      orderBy: { id: 'asc' },
     });
-
-    const total = splits.reduce((sum, split) => sum + split.amount, 0n);
-
-    return {
-      splits,
-      total,
-    };
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} expenseSplit`;
-  }
-
-  update(id: number, updateExpenseSplitDto: UpdateExpenseSplitDto) {
-    return `This action updates a #${id} expenseSplit`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} expenseSplit`;
+    return splits.map((s) => ({
+      uuid: s.uuid,
+      expenseId: s.expense.uuid,
+      amount: s.amount.toString(),
+      status: s.status,
+      user: s.user,
+    }));
   }
 }

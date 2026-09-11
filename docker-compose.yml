@@ -8,9 +8,45 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: geds
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - geds-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d geds"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: geds-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - geds-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    container_name: geds-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/geds?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   geds-postgres-data:
+  geds-redis-data:

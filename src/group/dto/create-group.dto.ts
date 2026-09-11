@@ -1,5 +1,8 @@
-import { User } from '../../prisma/generated/client.js';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateGroupDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
   name: string;
 }

@@ -1,51 +1,45 @@
-import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, UseGuards from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { ChangeRoleDto } from './dto/change-role.dto.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../common/types/auth-user.js';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly users: UsersService) {}
 
   @Get()
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
-  findAll() {
-    return this.usersService.findAll();
+  @ApiOperation({ summary: 'List users (admin only)' })
+  findAll() { return this.users.findAll(); }
+
+  @Get('me')
+  me(@CurrentUser() user: AuthUser) { return this.users.findSafeByUuid(user.sub); }
+
+  @Get(':uuid')
+  findOne(@Param('uuid', ParseUUIDPipe) uuid: string) { return this.users.findSafeByUuid(uuid); }
+
+  @Patch(':uuid')
+  update(@Param('uuid', ParseUUIDPipe) uuid: string, @Body() dto: UpdateUserDto, @CurrentUser() user: AuthUser) {
+    return this.users.update(uuid, dto, user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Patch(':id/role')
-  @Roles('ADMIN')
+  @Patch(':uuid/role')
   @UseGuards(RolesGuard)
-  async changeRole(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() payload: { role: 'ADMIN' | 'USER' },
-  ) {
-    return this.usersService.changeRole(id, payload.role);
+  @Roles('ADMIN')
+  changeRole(@Param('uuid', ParseUUIDPipe) uuid: string, @Body() body: ChangeRoleDto) {
+    return this.users.changeRole(uuid, body.role);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(Number(id));
+  @Delete(':uuid')
+  remove(@Param('uuid', ParseUUIDPipe) uuid: string, @CurrentUser() user: AuthUser) {
+    return this.users.remove(uuid, user);
   }
 }
