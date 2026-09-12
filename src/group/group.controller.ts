@@ -4,73 +4,89 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import { GroupService } from './group.service.js';
+
 import { CreateGroupDto } from './dto/create-group.dto.js';
 import { UpdateGroupDto } from './dto/update-group.dto.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
+import { GroupResponseDto, toGroupResponse } from './dto/group-response.dto.js';
+import { GroupBalancesResponseDto } from './dto/group-balances-response.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { AuthUser } from '../common/types/auth-user.js';
+import type { AuthenticatedUser } from '../auth/decorators/current-user.decorator.js';
 
-@ApiTags('Groups')
+@ApiTags('group')
 @ApiBearerAuth()
-@Controller('groups')
+@Controller('group')
 export class GroupController {
-  constructor(private readonly groups: GroupService) {}
+  constructor(private readonly groupService: GroupService) {}
 
   @Post()
-  create(@Body() dto: CreateGroupDto, @CurrentUser() user: AuthUser) {
-    return this.groups.create(dto, user.sub);
+  @ApiOperation({ summary: 'Create a group (creator becomes owner + member)' })
+  async create(
+    @Body() createGroupDto: CreateGroupDto,
+    @CurrentUser('id') userId: number,
+  ): Promise<GroupResponseDto> {
+    const group = await this.groupService.create(createGroupDto, userId);
+    return toGroupResponse(group);
   }
 
   @Get()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  findAll() {
-    return this.groups.findAll();
+  @ApiOperation({ summary: 'List all groups' })
+  async findAll(): Promise<GroupResponseDto[]> {
+    const groups = await this.groupService.findAll();
+    return groups.map(toGroupResponse);
   }
 
-  @Get('mine')
-  myGroups(@CurrentUser() user: AuthUser) {
-    return this.groups.myGroups(user.sub);
+  @Get('my')
+  @ApiOperation({ summary: 'List groups the current user owns or belongs to' })
+  async myGroups(
+    @CurrentUser('id') userId: number,
+  ): Promise<GroupResponseDto[]> {
+    const groups = await this.groupService.myGroups(userId);
+    return groups.map(toGroupResponse);
   }
 
-  @Get(':uuid/balances')
-  balances(
-    @Param('uuid', ParseUUIDPipe) uuid: string,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.groups.balances(uuid, user.sub);
+  @Get(':id')
+  @ApiOperation({ summary: 'Get group details with members' })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<GroupResponseDto> {
+    const group = await this.groupService.findOne(id);
+    return toGroupResponse(group);
   }
 
-  @Get(':uuid')
-  findOne(
-    @Param('uuid', ParseUUIDPipe) uuid: string,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.groups.findOne(uuid, user.sub);
+  @Get(':id/balances')
+  @ApiOperation({ summary: 'Get who-owes-whom balances for a group' })
+  async balances(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<GroupBalancesResponseDto> {
+    return this.groupService.getBalances(id, userId);
   }
 
-  @Patch(':uuid')
-  update(
-    @Param('uuid', ParseUUIDPipe) uuid: string,
-    @Body() dto: UpdateGroupDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.groups.update(uuid, dto, user.sub);
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a group (owner only)' })
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateGroupDto: UpdateGroupDto,
+    @CurrentUser('id') userId: number,
+  ): Promise<GroupResponseDto> {
+    const group = await this.groupService.update(id, updateGroupDto, userId);
+    return toGroupResponse(group);
   }
 
-  @Delete(':uuid')
-  remove(
-    @Param('uuid', ParseUUIDPipe) uuid: string,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.groups.remove(uuid, user.sub);
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a group (owner only)' })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<GroupResponseDto> {
+    const group = await this.groupService.remove(id, userId);
+    return toGroupResponse(group);
   }
 }

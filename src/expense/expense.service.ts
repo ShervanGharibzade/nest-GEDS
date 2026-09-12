@@ -1,122 +1,145 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
-const USER = { uuid: true, name: true, email: true } as const;
+const SAFE_USER_SELECT = { id: true, name: true, email: true } as const;
 
 @Injectable()
 export class ExpenseService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateExpenseDto, requesterUuid: string) {
-    const payer = await this.prisma.user.findUnique({ where: { uuid: requesterUuid } });
-    if (!payer) throw new NotFoundException('User not found');
+  async create(createExpenseDto: CreateExpenseDto, reqId: number) {
+    const { amount, description, groupId } = createExpenseDto;
 
-    const group = await this.prisma.group.findUnique({
-      where: { uuid: dto.groupId },
-      include: { members: { select: { userId: true, user: { select: USER } }, orderBy: { joinedAt: 'asc' } } },
-    });
-    if (!group) throw new NotFoundException('Group not found');
-    if (!group.members.some((m) => m.userId === payer.id)) {
-      throw new ForbiddenException('You are not a member of this group');
+    if (amount <= 0) {
+      throw new BadRequestException('Amount must be positive');
     }
 
-    const amount = BigInt(dto.amount);
-    const members = group.members;
-    if (members.length === 0) throw new ForbiddenException('Group has no members');
-
-    const base = amount / BigInt(members.length);
-    const remainder = amount % BigInt(members.length);
-
-    const expense = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.expense.create({
-        data: {
-          amount,
-          description: dto.description.trim(),
-          groupId: group.id,
-          paidById: payer.id,
-        },
-      });
-
-      await tx.expenseSplit.createMany({
-        data: members.map((member, index) => ({
-          expenseId: created.id,
-          userId: member.userId,
-          amount: base + (BigInt(index) < remainder ? 1n : 0n),
-          status: member.userId === payer.id ? 'PAID' : 'UNPAID',
-        })),
-      });
-
-      const unpaid = await tx.expenseSplit.count({
-        where: { expenseId: created.id, status: 'UNPAID' },
-      });
-      if (unpaid === 0) {
-        await tx.expense.update({ where: { id: created.id }, data: { status: 'CLOSE' } });
-      }
-
-      return tx.expense.findUniqueOrThrow({
-        where: { id: created.id },
-        include: {
-          group: { select: { uuid: true, name: true } },
-          paidBy: { select: USER },
-          splits: { include: { user: { select: USER } }, orderBy: { id: 'asc' } },
-        },
-      });
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
     });
 
-    return this.mapExpense(expense);
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const groupMembers = await this.prisma.groupMember.findMany({
+      where: { groupId: group.id },
+      select: { userId: true },
+    });
+
+    if (groupMembers.length === 0) {
+      throw new BadRequestException('Group has no members');
+    }
+
+    const isMember = groupMembers.some((member) => member.userId === reqId);
+    if (!isMember) {
+      throw new ForbiddenException('User is not a member of this group');
+    }
+
+    // Split the amount evenly across every member of the group (the payer
+    // included). Everyone except the payer owes their share back to the
+    // payer; the payer's own share is what they've already covered by
+    // paying. Any remainder from integer division is distributed one unit
+    // at a time (deterministically, by userId) to the non-payer members so
+    // the sum of all splits + the payer's implicit share always equals the
+    // total expense amount exactly.
+    const amountBig = BigInt(amount);
+    const memberCount = BigInt(groupMembers.length);
+    const baseShare = amountBig / memberCount;
+    let remainder = amountBig % memberCount;
+
+    const debtors = groupMembers
+      .map((m) => m.userId)
+      .filter((userId) => userId !== reqId)
+      .sort((a, b) => a - b);
+
+    const expense = await this.prisma.$transaction(async (tx) => {
+      const createdExpense = await tx.expense.create({
+        data: {
+          amount: amountBig,
+          description,
+          groupId: group.id,
+          paidById: reqId,
+        },
+      });
+
+      const splits = debtors.map((userId) => {
+        const extra = remainder > 0n ? 1n : 0n;
+        if (remainder > 0n) remainder -= 1n;
+        return {
+          amount: baseShare + extra,
+          expenseId: createdExpense.id,
+          userId,
+        };
+      });
+
+      if (splits.length > 0) {
+        await tx.expenseSplit.createMany({ data: splits });
+      }
+
+      return createdExpense;
+    });
+
+    return this.findOne(expense.id, reqId);
   }
 
-  async findAll(requesterUuid: string) {
-    const user = await this.prisma.user.findUnique({ where: { uuid: requesterUuid }, select: { id: true } });
-    if (!user) throw new NotFoundException('User not found');
+  /** Expenses in a group — only visible to members of that group. */
+  async findAllForGroup(groupId: number, reqId: number) {
+    await this.assertMembership(groupId, reqId);
 
-    const expenses = await this.prisma.expense.findMany({
-      where: { group: { members: { some: { userId: user.id } } } },
+    return this.prisma.expense.findMany({
+      where: { groupId },
       include: {
-        group: { select: { uuid: true, name: true } },
-        paidBy: { select: USER },
-        splits: { include: { user: { select: USER } }, orderBy: { id: 'asc' } },
+        paidBy: { select: SAFE_USER_SELECT },
+        splits: true,
       },
       orderBy: { createdAt: 'desc' },
     });
-    return expenses.map((e) => this.mapExpense(e));
   }
 
-  async findOne(uuid: string, requesterUuid: string) {
-    const user = await this.prisma.user.findUnique({ where: { uuid: requesterUuid }, select: { id: true } });
-    if (!user) throw new NotFoundException('User not found');
-
+  async findOne(id: number, reqId: number) {
     const expense = await this.prisma.expense.findUnique({
-      where: { uuid },
+      where: { id },
       include: {
-        group: { select: { id: true, uuid: true, name: true, members: { select: { userId: true } } } },
-        paidBy: { select: USER },
-        splits: { include: { user: { select: USER } }, orderBy: { id: 'asc' } },
+        paidBy: { select: SAFE_USER_SELECT },
+        splits: true,
       },
     });
-    if (!expense) throw new NotFoundException('Expense not found');
-    if (!expense.group.members.some((m) => m.userId === user.id)) {
-      throw new ForbiddenException('You are not a member of this group');
+
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
     }
-    return this.mapExpense(expense);
+
+    await this.assertMembership(expense.groupId, reqId);
+
+    return expense;
   }
 
-  private mapExpense(expense: any) {
-    return {
-      uuid: expense.uuid,
-      description: expense.description,
-      amount: expense.amount.toString(),
-      status: expense.status,
-      group: { uuid: expense.group.uuid, name: expense.group.name },
-      paidBy: expense.paidBy,
-      splits: expense.splits.map((split: any) => ({
-        uuid: split.uuid,
-        user: split.user,
-        amount: split.amount.toString(),
-        status: split.status,
-      })),
-      createdAt: expense.createdAt,
-    };
+  private async assertMembership(
+    groupId: number,
+    userId: number,
+  ): Promise<void> {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+    if (group.ownerId === userId) return;
+
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!membership) {
+      throw new ForbiddenException(
+        'Only members of this group can view its expenses',
+      );
+    }
   }
 }

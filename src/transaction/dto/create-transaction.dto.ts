@@ -1,16 +1,25 @@
-import { Transform } from 'class-transformer';
-import { IsString, IsUUID, Matches, MaxLength, IsOptional } from 'class-validator';
+import { IsInt, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateTransactionDto {
-  @IsUUID()
-  expenseId: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  expenseId: number;
 
-  @Transform(({ value }) => String(value))
-  @Matches(/^[1-9]\d*$/, { message: 'amount must be a positive integer amount in the smallest currency unit' })
-  amount: string;
+  /**
+   * Must equal the caller's outstanding split amount for this expense.
+   * The debtor (fromUser) and creditor (toUser/payer) are always derived
+   * server-side from the authenticated user and the expense, never from
+   * client input.
+   */
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  amount: number;
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(255)
   description?: string;
 }

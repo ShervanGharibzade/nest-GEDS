@@ -1,9 +1,14 @@
-import { IsUUID } from 'class-validator';
+import { IsInt, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AddGroupMemberDto {
-  @IsUUID()
-  groupId: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  groupId: number;
 
-  @IsUUID()
-  userId: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  userId: number;
 }

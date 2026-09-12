@@ -22,10 +22,16 @@ enum SplitStatus {
   UNPAID
 }
 
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
-  uuid         String   @unique @default(uuid())
   email        String   @unique
+  uuid         String   @unique @default(uuid())
   name         String
   passwordHash String
   role         UserRole @default(USER)
@@ -34,6 +40,8 @@ model User {
   memberships GroupMember[]
   expenses    Expense[]      @relation("ExpensePayer")
   splits      ExpenseSplit[]
+
+
   transactionsSent     Transaction[] @relation("TransactionFrom")
   transactionsReceived Transaction[] @relation("TransactionTo")
 
@@ -43,13 +51,15 @@ model User {
 
 model Group {
   id      Int    @id @default(autoincrement())
-  uuid    String @unique @default(uuid())
   name    String
   ownerId Int
+  uuid    String @unique @default(uuid())
 
-  owner User @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  owner User @relation("GroupOwner", fields: [ownerId], references: [id])
+
   members  GroupMember[]
   expenses Expense[]
+
   transactions Transaction[]
 
   createdAt DateTime @default(now())
@@ -60,8 +70,8 @@ model Group {
 
 model GroupMember {
   id      Int @id @default(autoincrement())
-  uuid    String @unique @default(uuid())
   groupId Int
+  uuid    String  @unique @default(uuid())
   userId  Int
 
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -83,9 +93,9 @@ model Expense {
   amount      BigInt
 
   group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  paidBy User  @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Restrict)
+  paidBy User  @relation("ExpensePayer", fields: [paidById], references: [id])
+
   splits ExpenseSplit[]
-  transactions Transaction[]
 
   createdAt DateTime @default(now())
 
@@ -102,31 +112,31 @@ model ExpenseSplit {
   amount    BigInt
 
   expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([expenseId, userId])
   @@index([userId])
 }
 
+
 model Transaction {
-  id         Int    @id @default(autoincrement())
-  uuid       String @unique @default(uuid())
+  id Int @id @default(autoincrement())
+  uuid      String @unique @default(uuid())
   groupId    Int
   fromUserId Int
   toUserId   Int
   expenseId  Int
-  amount     BigInt
+
+  amount      BigInt
   description String?
 
   group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  fromUser User  @relation("TransactionFrom", fields: [fromUserId], references: [id], onDelete: Restrict)
-  toUser   User  @relation("TransactionTo", fields: [toUserId], references: [id], onDelete: Restrict)
-  expense  Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("TransactionFrom", fields: [fromUserId], references: [id])
+  toUser   User  @relation("TransactionTo", fields: [toUserId], references: [id])
 
   createdAt DateTime @default(now())
 
   @@index([groupId])
   @@index([fromUserId])
   @@index([toUserId])
-  @@index([expenseId])
 }

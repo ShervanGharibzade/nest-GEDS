@@ -1,16 +1,23 @@
-import { Transform } from 'class-transformer';
-import { IsString, IsUUID, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsPositive, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateExpenseDto {
-  @IsUUID()
-  groupId: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  groupId: number;
 
-  @Transform(({ value }) => String(value))
-  @Matches(/^[1-9]\d*$/, { message: 'amount must be a positive integer amount in the smallest currency unit' })
-  amount: string;
+  /**
+   * Smallest currency unit (e.g. cents), as a positive integer. Converted
+   * to BigInt before being persisted since Expense.amount is BigInt.
+   */
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  amount: number;
 
   @IsString()
-  @MinLength(1)
-  @MaxLength(500)
+  @IsNotEmpty()
+  @MaxLength(255)
   description: string;
 }

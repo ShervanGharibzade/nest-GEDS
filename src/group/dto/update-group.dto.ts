@@ -1,8 +1,4 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateGroupDto } from './create-group.dto.js';
 
-export class UpdateGroupDto {
-  @IsString()
-  @MinLength(1)
-  @MaxLength(120)
-  name: string;
-}
+export class UpdateGroupDto extends PartialType(CreateGroupDto) {}

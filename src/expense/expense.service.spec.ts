@@ -1,54 +1,66 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ExpenseService } from './expense.service.js';
 
+function buildService() {
+  const prisma = {
+    group: { findUnique: vi.fn() },
+    groupMember: { findMany: vi.fn(), findUnique: vi.fn() },
+    expense: { create: vi.fn(), findUnique: vi.fn() },
+    expenseSplit: { createMany: vi.fn() },
+    $transaction: vi.fn(async (cb: any) => cb(prisma)),
+  };
+
+  const service = new ExpenseService(prisma as any);
+  return { service, prisma };
+}
+
 describe('ExpenseService', () => {
-  it('creates exact integer splits, includes payer as an already-paid share, and closes only when all shares are paid', async () => {
-    const tx = {
-      expense: {
-        create: vi.fn().mockResolvedValue({ id: 1 }),
-        update: vi.fn(),
-        findUniqueOrThrow: vi.fn().mockResolvedValue({
-          uuid: 'e', description: 'Dinner', amount: 301n, status: 'OPEN',
-          group: { uuid: 'g-a', name: 'Group' },
-          paidBy: { uuid: 'u-a', name: 'A', email: 'a@test' },
-          splits: [
-            { uuid: 's1', user: { uuid: 'u-a', name: 'A', email: 'a@test' }, amount: 101n, status: 'PAID' },
-            { uuid: 's2', user: { uuid: 'u-b', name: 'B', email: 'b@test' }, amount: 100n, status: 'UNPAID' },
-            { uuid: 's3', user: { uuid: 'u-c', name: 'C', email: 'c@test' }, amount: 100n, status: 'UNPAID' },
-          ],
-          createdAt: new Date(),
-        }),
-      },
-      expenseSplit: {
-        createMany: vi.fn(),
-        count: vi.fn().mockResolvedValue(2),
-      },
-    };
-    const prisma = {
-      user: { findUnique: vi.fn().mockResolvedValue({ id: 10, uuid: 'u-a' }) },
-      group: {
-        findUnique: vi.fn().mockResolvedValue({
-          id: 20,
-          uuid: 'g-a',
-          members: [
-            { userId: 10, user: { uuid: 'u-a', name: 'A', email: 'a@test' } },
-            { userId: 11, user: { uuid: 'u-b', name: 'B', email: 'b@test' } },
-            { userId: 12, user: { uuid: 'u-c', name: 'C', email: 'c@test' } },
-          ],
-        }),
-      },
-      $transaction: vi.fn(async (callback: any) => callback(tx)),
-    } as any;
+  beforeEach(() => vi.clearAllMocks());
 
-    const service = new ExpenseService(prisma);
-    await expect(service.create({ groupId: 'g-a', amount: '301', description: 'Dinner' }, 'u-a')).resolves.toBeDefined();
+  it('rejects a non-member trying to create an expense', async () => {
+    const { service, prisma } = buildService();
+    prisma.group.findUnique.mockResolvedValue({ id: 1, ownerId: 1 });
+    prisma.groupMember.findMany.mockResolvedValue([{ userId: 2 }, { userId: 3 }]);
 
-    expect(tx.expenseSplit.createMany).toHaveBeenCalledWith({
+    await expect(
+      service.create({ groupId: 1, amount: 300, description: 'Dinner' }, 99),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('rejects non-positive amounts', async () => {
+    const { service } = buildService();
+    await expect(
+      service.create({ groupId: 1, amount: 0, description: 'x' }, 1),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('splits the amount evenly across debtors, distributing the remainder deterministically', async () => {
+    const { service, prisma } = buildService();
+    prisma.group.findUnique.mockResolvedValue({ id: 1, ownerId: 1 });
+    // 3 members total, payer is userId 1 -> 2 debtors (2 and 3)
+    prisma.groupMember.findMany.mockResolvedValue([
+      { userId: 1 },
+      { userId: 2 },
+      { userId: 3 },
+    ]);
+    prisma.expense.create.mockResolvedValue({ id: 42, paidById: 1 });
+    prisma.expense.findUnique.mockResolvedValue({
+      id: 42,
+      groupId: 1,
+      paidBy: { id: 1, name: 'Payer', email: 'p@p.com' },
+      splits: [],
+    });
+    prisma.groupMember.findUnique.mockResolvedValue({ groupId: 1, userId: 1 });
+
+    // 100 split 3 ways = 33, 33, 34 (33*3=99, remainder 1)
+    await service.create({ groupId: 1, amount: 100, description: 'Dinner' }, 1);
+
+    expect(prisma.expenseSplit.createMany).toHaveBeenCalledWith({
       data: [
-        { expenseId: 1, userId: 10, amount: 101n, status: 'PAID' },
-        { expenseId: 1, userId: 11, amount: 100n, status: 'UNPAID' },
-        { expenseId: 1, userId: 12, amount: 100n, status: 'UNPAID' },
+        { amount: 34n, expenseId: 42, userId: 2 }, // remainder goes to lowest userId first
+        { amount: 33n, expenseId: 42, userId: 3 },
       ],
     });
-    expect(tx.expense.update).not.toHaveBeenCalled();
   });
 });

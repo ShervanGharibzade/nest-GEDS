@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, TooManyRequestsException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 
 type Bucket = { count: number; resetAt: number };
@@ -21,7 +26,9 @@ export class RateLimitGuard implements CanActivate {
     }
 
     if (current.count >= this.limit) {
-      throw new TooManyRequestsException('Too many requests, please try again later');
+      throw new BadRequestException(
+        'Too many requests, please try again later',
+      );
     }
 
     current.count += 1;

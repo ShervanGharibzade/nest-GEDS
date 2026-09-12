@@ -1,6 +1,14 @@
 node_modules
 dist
-.git
-.env
+build
 coverage
+.git
+.gitignore
+.env
+.env.*
+!.env.example
 *.log
+.vscode
+.idea
+Dockerfile
+docker-compose.yml

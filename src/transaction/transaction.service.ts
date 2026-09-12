@@ -1,152 +1,163 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto.js';
-
-const USER = { uuid: true, name: true, email: true } as const;
+import { PrismaService } from '../prisma/prisma.service.js';
+import { ExpenseStatus, SplitStatus } from '../prisma/generated/enums.js';
+import { Transaction } from '../prisma/generated/client.js';
 
 @Injectable()
 export class TransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateTransactionDto, debtorUuid: string) {
-    const debtor = await this.prisma.user.findUnique({ where: { uuid: debtorUuid } });
-    if (!debtor) throw new NotFoundException('User not found');
+  /**
+   * Pay off the authenticated user's own split for an expense.
+   * - debtor is always the authenticated user (never client input)
+   * - creditor is always the expense's payer
+   * - amount must exactly equal the outstanding split amount
+   * - the split must belong to the caller, be UNPAID, and its expense OPEN
+   * - marking the split PAID + creating the Transaction happens atomically
+   * - if that was the last unpaid split for the expense, the expense is
+   *   automatically closed (status -> CLOSE)
+   */
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    debtorId: number,
+  ): Promise<Transaction> {
+    const { expenseId, amount, description } = createTransactionDto;
 
     return this.prisma.$transaction(async (tx) => {
       const expense = await tx.expense.findUnique({
-        where: { uuid: dto.expenseId },
-        include: {
-          group: { include: { members: { select: { userId: true } } } },
-          paidBy: { select: USER },
+        where: { id: expenseId },
+      });
+
+      if (!expense) {
+        throw new NotFoundException('Expense not found');
+      }
+
+      if (expense.status === ExpenseStatus.CLOSE) {
+        throw new ConflictException(
+          'This expense is already closed; no further payments are accepted',
+        );
+      }
+
+      const membership = await tx.groupMember.findUnique({
+        where: {
+          groupId_userId: { groupId: expense.groupId, userId: debtorId },
         },
       });
-      if (!expense) throw new NotFoundException('Expense not found');
-      if (expense.status === 'CLOSE') throw new ConflictException('Expense is already closed');
-
-      if (!expense.group.members.some((m) => m.userId === debtor.id)) {
-        throw new ForbiddenException('You are not a member of this group');
-      }
-      if (expense.paidById === debtor.id) {
-        throw new ForbiddenException('The payer does not owe this expense');
+      if (!membership) {
+        throw new ForbiddenException(
+          'You must be a member of this group to pay a debt in it',
+        );
       }
 
       const split = await tx.expenseSplit.findUnique({
-        where: { expenseId_userId: { expenseId: expense.id, userId: debtor.id } },
+        where: {
+          expenseId_userId: { expenseId, userId: debtorId },
+        },
       });
-      if (!split) throw new NotFoundException('Expense split not found');
-      if (split.status === 'PAID') throw new ConflictException('Debt is already paid');
 
-      const amount = BigInt(dto.amount);
-      if (amount !== split.amount) throw new ForbiddenException('Payment amount must equal the debt');
+      if (!split) {
+        throw new NotFoundException(
+          'You do not have an outstanding split for this expense',
+        );
+      }
 
-      // The conditional update makes the state transition atomic and prevents duplicate payments.
-      const updated = await tx.expenseSplit.updateMany({
-        where: { id: split.id, status: 'UNPAID' },
-        data: { status: 'PAID' },
+      if (split.status === SplitStatus.PAID) {
+        throw new ConflictException('This split has already been paid');
+      }
+
+      const amountBig = BigInt(amount);
+      if (split.amount !== amountBig) {
+        throw new BadRequestException(
+          `Payment amount must equal the outstanding debt of ${split.amount.toString()}`,
+        );
+      }
+
+      await tx.expenseSplit.update({
+        where: { id: split.id },
+        data: { status: SplitStatus.PAID },
       });
-      if (updated.count !== 1) throw new ConflictException('Debt was already paid');
 
       const transaction = await tx.transaction.create({
         data: {
           groupId: expense.groupId,
-          fromUserId: debtor.id,
+          fromUserId: debtorId,
           toUserId: expense.paidById,
-          expenseId: expense.id,
-          amount: split.amount,
-          description: dto.description?.trim() || null,
-        },
-        include: {
-          group: { select: { uuid: true } },
-          fromUser: { select: USER },
-          toUser: { select: USER },
+          expenseId,
+          amount: amountBig,
+          description,
         },
       });
 
-      const remaining = await tx.expenseSplit.count({
-        where: { expenseId: expense.id, status: 'UNPAID' },
+      const remainingUnpaid = await tx.expenseSplit.count({
+        where: { expenseId, status: SplitStatus.UNPAID },
       });
-      if (remaining === 0) {
-        await tx.expense.update({ where: { id: expense.id }, data: { status: 'CLOSE' } });
+
+      if (remainingUnpaid === 0) {
+        await tx.expense.update({
+          where: { id: expenseId },
+          data: { status: ExpenseStatus.CLOSE },
+        });
       }
 
-      return {
-        uuid: transaction.uuid,
-        expenseId: expense.uuid,
-        groupId: transaction.group.uuid,
-        amount: transaction.amount.toString(),
-        description: transaction.description,
-        fromUser: transaction.fromUser,
-        toUser: transaction.toUser,
-        createdAt: transaction.createdAt,
-      };
+      return transaction;
     });
   }
 
-  async myTransactions(userUuid: string) {
-    const transactions = await this.prisma.transaction.findMany({
-      where: { fromUser: { uuid: userUuid } },
-      include: {
-        group: { select: { uuid: true } },
-        fromUser: { select: USER },
-        toUser: { select: USER },
-      },
+  async myTransactions(userId: number): Promise<Transaction[]> {
+    return this.prisma.transaction.findMany({
+      where: { fromUserId: userId },
       orderBy: { createdAt: 'desc' },
     });
-    const expenseIds = [...new Set(transactions.map((t) => t.expenseId))];
-    const expenses = await this.prisma.expense.findMany({ where: { id: { in: expenseIds } }, select: { id: true, uuid: true } });
-    const expenseMap = new Map(expenses.map((e) => [e.id, e.uuid]));
-    return transactions.map((t) => this.map(t, expenseMap.get(t.expenseId)!));
   }
 
-  async findOne(uuid: string, userUuid: string) {
+  async findOne(userId: number, transactionId: number): Promise<Transaction> {
     const transaction = await this.prisma.transaction.findUnique({
-      where: { uuid },
-      include: {
-        group: { select: { uuid: true } },
-        fromUser: { select: USER },
-        toUser: { select: USER },
-      },
+      where: { id: transactionId },
     });
-    if (!transaction) throw new NotFoundException('Transaction not found');
-    if (transaction.fromUser.uuid !== userUuid && transaction.toUser.uuid !== userUuid) {
-      throw new ForbiddenException('You cannot view this transaction');
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
     }
-    const expense = await this.prisma.expense.findUnique({ where: { id: transaction.expenseId }, select: { uuid: true } });
-    if (!expense) throw new NotFoundException('Expense not found');
-    return this.map(transaction, expense.uuid);
+
+    if (transaction.fromUserId !== userId && transaction.toUserId !== userId) {
+      throw new ForbiddenException(
+        'You can only view transactions you sent or received',
+      );
+    }
+
+    return transaction;
   }
 
-  async groupHistory(groupUuid: string, userUuid: string) {
-    const member = await this.prisma.groupMember.findFirst({
-      where: { group: { uuid: groupUuid }, user: { uuid: userUuid } },
+  /** Full payment history for a group — members only. */
+  async groupHistory(groupId: number, userId: number): Promise<Transaction[]> {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
     });
-    if (!member) throw new ForbiddenException('You are not a member of this group');
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
 
-    const rows = await this.prisma.transaction.findMany({
-      where: { group: { uuid: groupUuid } },
-      include: {
-        group: { select: { uuid: true } },
-        fromUser: { select: USER },
-        toUser: { select: USER },
-      },
+    if (group.ownerId !== userId) {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      });
+      if (!membership) {
+        throw new ForbiddenException(
+          'Only members of this group can view its transaction history',
+        );
+      }
+    }
+
+    return this.prisma.transaction.findMany({
+      where: { groupId },
       orderBy: { createdAt: 'desc' },
     });
-    const expenseIds = [...new Set(rows.map((t) => t.expenseId))];
-    const expenses = await this.prisma.expense.findMany({ where: { id: { in: expenseIds } }, select: { id: true, uuid: true } });
-    const expenseMap = new Map(expenses.map((e) => [e.id, e.uuid]));
-    return rows.map((t) => this.map(t, expenseMap.get(t.expenseId)!));
-  }
-
-  private map(t: any, expenseUuid: string) {
-    return {
-      uuid: t.uuid,
-      expenseId: expenseUuid,
-      groupId: t.group.uuid,
-      amount: t.amount.toString(),
-      description: t.description,
-      fromUser: t.fromUser,
-      toUser: t.toUser,
-      createdAt: t.createdAt,
-    };
   }
 }

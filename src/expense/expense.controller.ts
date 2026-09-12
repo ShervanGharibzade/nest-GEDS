@@ -1,28 +1,66 @@
-import { Body, Controller, Get, Param, Post, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ExpenseService } from './expense.service.js';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
+import {
+  ExpenseResponseDto,
+  toExpenseResponse,
+} from './dto/expense-response.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { AuthUser } from '../common/types/auth-user.js';
 
-@ApiTags('Expenses')
+@ApiTags('expense')
 @ApiBearerAuth()
-@Controller('expenses')
+@Controller('expense')
 export class ExpenseController {
-  constructor(private readonly expenses: ExpenseService) {}
+  constructor(private readonly expenseService: ExpenseService) {}
 
   @Post()
-  create(@Body() dto: CreateExpenseDto, @CurrentUser() user: AuthUser) {
-    return this.expenses.create(dto, user.sub);
+  @ApiOperation({
+    summary: 'Create an expense and automatically split it among the group',
+  })
+  async create(
+    @Body() createExpenseDto: CreateExpenseDto,
+    @CurrentUser('id') userId: number,
+  ): Promise<ExpenseResponseDto> {
+    const expense = await this.expenseService.create(
+      createExpenseDto,
+      userId,
+    );
+    return toExpenseResponse(expense);
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthUser) {
-    return this.expenses.findAll(user.sub);
+  @ApiOperation({
+    summary: 'List expenses for a group (group members only)',
+  })
+  async findAllForGroup(
+    @Query('groupId', ParseIntPipe) groupId: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<ExpenseResponseDto[]> {
+    const expenses = await this.expenseService.findAllForGroup(
+      groupId,
+      userId,
+    );
+    return expenses.map(toExpenseResponse);
   }
 
-  @Get(':uuid')
-  findOne(@Param('uuid', ParseUUIDPipe) uuid: string, @CurrentUser() user: AuthUser) {
-    return this.expenses.findOne(uuid, user.sub);
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get an expense with payer and splits (group members only)',
+  })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<ExpenseResponseDto> {
+    const expense = await this.expenseService.findOne(id, userId);
+    return toExpenseResponse(expense);
   }
 }

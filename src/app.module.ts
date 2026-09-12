@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { PrismaModule } from './prisma/prisma.module.js';
+import { PrismaService } from './prisma/prisma.service.js';
 import { UsersModule } from './users/users.module.js';
 import { GroupModule } from './group/group.module.js';
 import { GroupMemberModule } from './group-member/group-member.module.js';
@@ -11,38 +9,56 @@ import { ExpenseModule } from './expense/expense.module.js';
 import { ExpenseSplitModule } from './expense-split/expense-split.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AppRedisModule } from './redis/redis.module.js';
-import { TransactionModule } from './transaction/transaction.module.js';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './auth/guards/jwt.auth.guard.js';
-import { HealthController } from './health.controller.js';
+import { PrismaModule } from './prisma/prisma.module.js';
+import { TransactionModule } from './transaction/transaction.module.js';
+import { envValidationSchema } from './common/config/env.validation.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: (env) => {
-        for (const key of ['DATABASE_URL', 'REDIS_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET']) {
-          if (!env[key]) throw new Error(`Missing required environment variable: ${key}`);
-        }
-        if (env.JWT_ACCESS_SECRET.length < 32 || env.JWT_REFRESH_SECRET.length < 32) {
-          throw new Error('JWT secrets must be at least 32 characters');
-        }
-        return env;
-      },
+      // validationSchema: envValidationSchema,
+      // validationOptions: { abortEarly: false },
     }),
-    PrismaModule,
-    AppRedisModule,
-    AuthModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: config.get<number>('THROTTLE_TTL_MS', 60000),
+            limit: config.get<number>('THROTTLE_LIMIT', 10),
+          },
+        ],
+      }),
+    }),
     UsersModule,
+    PrismaModule,
     GroupModule,
     GroupMemberModule,
     ExpenseModule,
     ExpenseSplitModule,
+    AppRedisModule,
+    AuthModule,
     TransactionModule,
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
+  exports: [PrismaService],
 })
 export class AppModule {}

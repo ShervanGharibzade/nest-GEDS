@@ -1,81 +1,156 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AddGroupMemberDto } from './dto/create-group-member.dto.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { SplitStatus } from '../prisma/generated/enums.js';
 
-const USER = { uuid: true, name: true, email: true } as const;
+const SAFE_USER_SELECT = { id: true, name: true, email: true } as const;
 
 @Injectable()
 export class GroupMemberService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async add(dto: AddGroupMemberDto, requesterUuid: string) {
-    const group = await this.prisma.group.findUnique({ where: { uuid: dto.groupId } });
-    if (!group) throw new NotFoundException('Group not found');
-    await this.assertOwner(group.ownerId, requesterUuid);
+  async add(addGroupMemberDto: AddGroupMemberDto, reqId: number) {
+    const { groupId, userId } = addGroupMemberDto;
 
-    const user = await this.prisma.user.findUnique({ where: { uuid: dto.userId } });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: group.id, userId: user.id } },
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
     });
-    if (existing) throw new ConflictException('User is already a member of this group');
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    this.assertOwner(group, reqId);
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const existingMembership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (existingMembership) {
+      throw new ConflictException('User is already a member of this group');
+    }
 
     return this.prisma.groupMember.create({
-      data: { groupId: group.id, userId: user.id },
-      include: { user: { select: USER } },
+      data: { groupId, userId },
+      include: { user: { select: SAFE_USER_SELECT } },
     });
   }
 
-  async findAll(groupUuid: string, requesterUuid: string) {
-    const group = await this.prisma.group.findUnique({
-      where: { uuid: groupUuid },
-      select: { id: true },
+  /** All members across all groups (used by the generic lookup endpoints). */
+  async findAll() {
+    return this.prisma.groupMember.findMany({
+      include: {
+        user: { select: SAFE_USER_SELECT },
+      },
     });
-    if (!group) throw new NotFoundException('Group not found');
-    await this.assertMember(group.id, requesterUuid);
+  }
+
+  /** Members of a single group. */
+  async findByGroup(groupId: number) {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
 
     return this.prisma.groupMember.findMany({
-      where: { groupId: group.id },
-      include: { user: { select: USER } },
-      orderBy: { joinedAt: 'asc' },
+      where: { groupId },
+      include: { user: { select: SAFE_USER_SELECT } },
     });
   }
 
-  async remove(groupUuid: string, userUuid: string, requesterUuid: string) {
-    const group = await this.prisma.group.findUnique({ where: { uuid: groupUuid } });
-    if (!group) throw new NotFoundException('Group not found');
-    await this.assertOwner(group.ownerId, requesterUuid);
-
-    const target = await this.prisma.user.findUnique({ where: { uuid: userUuid }, select: { id: true } });
-    if (!target) throw new NotFoundException('User not found');
-    if (target.id === group.ownerId) throw new ForbiddenException('The group owner cannot be removed');
-
-    const membership = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: group.id, userId: target.id } },
-      include: { user: { select: USER } },
+  async findOne(id: number) {
+    const groupMember = await this.prisma.groupMember.findUnique({
+      where: { id },
+      include: {
+        user: { select: SAFE_USER_SELECT },
+      },
     });
-    if (!membership) throw new NotFoundException('User is not a member of this group');
 
-    const unresolved = await this.prisma.expenseSplit.count({
-      where: { userId: target.id, status: 'UNPAID', expense: { groupId: group.id } },
-    });
-    if (unresolved > 0) throw new ConflictException('Member has unresolved debts');
+    if (!groupMember) {
+      throw new NotFoundException('Group member not found');
+    }
 
-    await this.prisma.groupMember.delete({ where: { id: membership.id } });
-    return 'Member removed successfully';
+    return groupMember;
   }
 
-  private async assertOwner(ownerId: number, requesterUuid: string) {
-    const user = await this.prisma.user.findUnique({ where: { uuid: requesterUuid }, select: { id: true } });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.id !== ownerId) throw new ForbiddenException('Only the group owner can manage members');
+  async remove(groupId: number, userId: number, reqId: number) {
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    this.assertOwner(group, reqId);
+
+    if (group.ownerId === userId) {
+      throw new ForbiddenException(
+        'The group owner cannot be removed from the group',
+      );
+    }
+
+    const groupMember = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!groupMember) {
+      throw new NotFoundException('User is not a member of this group');
+    }
+
+    await this.assertNoUnresolvedDebts(groupId, userId);
+
+    return this.prisma.groupMember.delete({ where: { id: groupMember.id } });
   }
 
-  private async assertMember(groupId: number, requesterUuid: string) {
-    const member = await this.prisma.groupMember.findFirst({
-      where: { groupId, user: { uuid: requesterUuid } },
+  /**
+   * A member can't be removed while they still owe money in this group, or
+   * are still owed money by other members in this group — removing them
+   * would silently orphan that debt.
+   */
+  private async assertNoUnresolvedDebts(
+    groupId: number,
+    userId: number,
+  ): Promise<void> {
+    const owedByThem = await this.prisma.expenseSplit.count({
+      where: {
+        userId,
+        status: SplitStatus.UNPAID,
+        expense: { groupId },
+      },
     });
-    if (!member) throw new ForbiddenException('You are not a member of this group');
+
+    if (owedByThem > 0) {
+      throw new ForbiddenException(
+        'This member still has unpaid debts in the group and cannot be removed',
+      );
+    }
+
+    const owedToThem = await this.prisma.expenseSplit.count({
+      where: {
+        status: SplitStatus.UNPAID,
+        expense: { groupId, paidById: userId },
+      },
+    });
+
+    if (owedToThem > 0) {
+      throw new ForbiddenException(
+        'Other members still owe this member money in the group; settle debts before removing them',
+      );
+    }
+  }
+
+  private assertOwner(group: { ownerId: number }, reqId: number): void {
+    if (group.ownerId !== reqId) {
+      throw new ForbiddenException('Only the group owner can manage members');
+    }
   }
 }

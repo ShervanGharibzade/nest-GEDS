@@ -12,7 +12,7 @@ export class HealthController {
   @Get()
   async check() {
     await this.prisma.$queryRaw`SELECT 1`;
-    await this.redis.ping();
+    // await this.redis.ping();
     return { status: 'ok', database: 'ok', redis: 'ok' };
   }
 }

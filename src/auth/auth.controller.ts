@@ -1,74 +1,134 @@
 import {
-  Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException,
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { Request, Response } from 'express';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type {
+  Response as ExpressResponse,
+  Request as ExpressRequest,
+} from 'express';
 import { AuthService } from './auth.service.js';
 import { RegisterUserDto } from './dto/register-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
+import { UserResponseDto } from '../users/dto/user-response.dto.js';
+import { RESPONSE_MESSAGES } from '../common/constants/response-messages.js';
 import { DecodeTokenService } from './jwt/decode-token.service.js';
+import { AccessTokenService } from './jwt/access-token.service.js';
+import { UsersService } from '../users/users.service.js';
 import { RedisService } from '../redis/redis.service.js';
+import { RefreshResponseDto } from './dto/refresh-response-dto.js';
 import { Public } from './decorators/public.decorator.js';
-import { CurrentUser } from './decorators/current-user.decorator.js';
-import { RateLimitGuard } from './guards/rate-limit.guard.js';
-import { UseGuards } from '@nestjs/common';
-import type { AuthUser } from '../common/types/auth-user.js';
 
-@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly decodeToken: DecodeTokenService,
-    private readonly redis: RedisService,
+    private readonly decodeTokenService: DecodeTokenService,
+    private readonly accessTokenService: AccessTokenService,
+    private readonly userService: UsersService,
+    private readonly redisService: RedisService,
   ) {}
 
   @Post('register')
   @Public()
-  @UseGuards(RateLimitGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register a user' })
-  register(@Body() dto: RegisterUserDto) {
-    return this.authService.register(dto);
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  async register(@Body() data: RegisterUserDto): Promise<string> {
+    const user = await this.authService.register(data);
+    return RESPONSE_MESSAGES.AUTH.USER_REGISTRY_SUCCESSFULLY(user.email);
   }
 
   @Post('login')
   @Public()
-  @UseGuards(RateLimitGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login and issue access/refresh tokens' })
-  login(@Body() dto: LoginUserDto, @Res({ passthrough: true }) response: Response) {
-    return this.authService.login(dto, response);
+  @ApiOperation({ summary: 'Authenticate user and issue tokens' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    type: UserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) response: ExpressResponse,
+  ): Promise<UserResponseDto> {
+    return this.authService.login(loginDto, response);
   }
 
   @Post('refresh')
   @Public()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Rotate the refresh token and issue a new access token' })
+  @ApiOperation({
+    summary: 'Issue a new access token using a valid refresh token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Access token refreshed',
+    type: RefreshResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   async refresh(
-    @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const token = request.cookies?.refresh_token as string | undefined;
-    if (!token) throw new UnauthorizedException('Refresh token missing');
+    @Req() request: ExpressRequest,
+    @Res({ passthrough: true }) response: ExpressResponse,
+  ): Promise<RefreshResponseDto> {
+    const refreshToken = this.extractRefreshToken(request);
 
-    const { id: userUuid } = await this.decodeToken.decodeRefreshToken(token);
-    const stored = await this.redis.getRefreshToken(userUuid);
-    if (!stored || stored !== token) {
+    const { id } =
+      await this.decodeTokenService.decodeRefreshToken(refreshToken);
+
+    const storedToken = await this.redisService.getRefreshToken(id);
+    if (!storedToken || storedToken !== refreshToken) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
 
-    return this.authService.refresh(userUuid, response, token);
+    const user = await this.userService.findOne(id);
+
+    const accessToken = await this.accessTokenService.generate({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return { accessToken };
   }
 
   @Post('sign-out')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Revoke the current refresh token' })
-  signOut(
-    @CurrentUser() user: AuthUser,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authService.signOut(user.sub, response);
+  @ApiOperation({
+    summary: 'Sign out the current user and revoke their refresh token',
+  })
+  @ApiResponse({ status: 200, description: 'Signed out successfully' })
+  async signOut(
+    @Req() request: ExpressRequest,
+    @Res({ passthrough: true }) response: ExpressResponse,
+  ): Promise<string> {
+    const refreshToken = this.extractRefreshToken(request);
+
+    const { id } =
+      await this.decodeTokenService.decodeRefreshToken(refreshToken);
+
+    const result = await this.authService.signOut(id);
+
+    response.clearCookie('refresh_token', { path: '/auth/refresh' });
+
+    return result;
+  }
+
+  private extractRefreshToken(request: ExpressRequest): string {
+    const token = request.cookies?.['refresh_token'];
+    if (!token) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+    return token;
   }
 }

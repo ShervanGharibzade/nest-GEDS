@@ -1,17 +1,33 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ExpenseSplitService } from './expense-split.service.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { AuthUser } from '../common/types/auth-user.js';
 
-@ApiTags('Expense Splits')
+// Read-only: expense splits are created exclusively by ExpenseService and
+// mutated exclusively by TransactionService. See TODO section 7 — public
+// create/update/delete endpoints were removed because they could bypass
+// expense integrity rules (e.g. arbitrary amounts, double-paying splits).
+@ApiTags('expense-split')
 @ApiBearerAuth()
-@Controller('groups/:groupUuid/splits')
+@Controller('expense-split')
 export class ExpenseSplitController {
-  constructor(private readonly splits: ExpenseSplitService) {}
+  constructor(private readonly expenseSplitService: ExpenseSplitService) {}
 
-  @Get('mine')
-  mine(@Param('groupUuid', ParseUUIDPipe) groupUuid: string, @CurrentUser() user: AuthUser) {
-    return this.splits.mine(groupUuid, user.sub);
+  @Get('group/:groupId/mine')
+  @ApiOperation({ summary: "Get the current user's splits within a group" })
+  findMineForGroup(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @CurrentUser('id') userId: number,
+  ) {
+    return this.expenseSplitService.findAllSplitsForGroup(groupId, userId);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single split (only visible to the debtor or the payer)' })
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: number,
+  ) {
+    return this.expenseSplitService.findOne(id, userId);
   }
 }

@@ -1,33 +1,63 @@
-import { Body, Controller, Get, Param, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service.js';
 import { CreateTransactionDto } from './dto/create-transaction.dto.js';
+import {
+  TransactionResponseDto,
+  toTransactionResponse,
+} from './dto/transaction-response.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { AuthUser } from '../common/types/auth-user.js';
 
-@ApiTags('Transactions')
+@ApiTags('transaction')
 @ApiBearerAuth()
-@Controller('transactions')
+@Controller('transaction')
 export class TransactionController {
-  constructor(private readonly transactions: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
-  pay(@Body() dto: CreateTransactionDto, @CurrentUser() user: AuthUser) {
-    return this.transactions.create(dto, user.sub);
+  @ApiOperation({
+    summary: 'Pay off your own split for an expense (debtor is always you)',
+  })
+  async create(
+    @Body() createTransactionDto: CreateTransactionDto,
+    @CurrentUser('id') userId: number,
+  ): Promise<TransactionResponseDto> {
+    const transaction = await this.transactionService.create(
+      createTransactionDto,
+      userId,
+    );
+    return toTransactionResponse(transaction);
   }
 
   @Get('mine')
-  mine(@CurrentUser() user: AuthUser) {
-    return this.transactions.myTransactions(user.sub);
+  @ApiOperation({ summary: 'List transactions you have paid' })
+  async myTransactions(
+    @CurrentUser('id') userId: number,
+  ): Promise<TransactionResponseDto[]> {
+    const transactions = await this.transactionService.myTransactions(userId);
+    return transactions.map(toTransactionResponse);
   }
 
-  @Get('group/:groupUuid')
-  groupHistory(@Param('groupUuid', ParseUUIDPipe) groupUuid: string, @CurrentUser() user: AuthUser) {
-    return this.transactions.groupHistory(groupUuid, user.sub);
+  @Get('group/:groupId')
+  @ApiOperation({ summary: 'Group transaction history (members only)' })
+  async groupHistory(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<TransactionResponseDto[]> {
+    const transactions = await this.transactionService.groupHistory(
+      groupId,
+      userId,
+    );
+    return transactions.map(toTransactionResponse);
   }
 
-  @Get(':uuid')
-  findOne(@Param('uuid', ParseUUIDPipe) uuid: string, @CurrentUser() user: AuthUser) {
-    return this.transactions.findOne(uuid, user.sub);
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a transaction you sent or received' })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: number,
+  ): Promise<TransactionResponseDto> {
+    const transaction = await this.transactionService.findOne(userId, id);
+    return toTransactionResponse(transaction);
   }
 }

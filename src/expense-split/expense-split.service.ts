@@ -1,35 +1,61 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-const USER = { uuid: true, name: true, email: true } as const;
-
 @Injectable()
 export class ExpenseSplitService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async mine(groupUuid: string, userUuid: string) {
-    const user = await this.prisma.user.findUnique({ where: { uuid: userUuid }, select: { id: true } });
-    if (!user) throw new NotFoundException('User not found');
+  /**
+   * Splits are never created or mutated directly through this service's
+   * public API — they are only ever created by ExpenseService (as part of
+   * creating an expense) and only ever transitioned to PAID by
+   * TransactionService (as part of recording a payment). This service is
+   * read/query only, by design (see TODO section 7).
+   */
 
-    const group = await this.prisma.group.findUnique({ where: { uuid: groupUuid }, select: { id: true } });
-    if (!group) throw new NotFoundException('Group not found');
-
-    const member = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: group.id, userId: user.id } },
-    });
-    if (!member) throw new ForbiddenException('You are not a member of this group');
-
+  async findAllSplitsForGroup(groupId: number, userId: number) {
     const splits = await this.prisma.expenseSplit.findMany({
-      where: { userId: user.id, expense: { groupId: group.id } },
-      include: { expense: { select: { uuid: true } }, user: { select: USER } },
-      orderBy: { id: 'asc' },
+      where: {
+        userId,
+        expense: { groupId },
+      },
+      select: {
+        id: true,
+        uuid: true,
+        amount: true,
+        status: true,
+        expenseId: true,
+        userId: true,
+      },
+      orderBy: { id: 'desc' },
     });
-    return splits.map((s) => ({
-      uuid: s.uuid,
-      expenseId: s.expense.uuid,
-      amount: s.amount.toString(),
-      status: s.status,
-      user: s.user,
-    }));
+
+    const total = splits.reduce((sum, split) => sum + split.amount, 0n);
+
+    return {
+      splits: splits.map((s) => ({ ...s, amount: s.amount.toString() })),
+      total: total.toString(),
+    };
+  }
+
+  async findOne(id: number, userId: number) {
+    const split = await this.prisma.expenseSplit.findUnique({
+      where: { id },
+      include: { expense: { select: { groupId: true, paidById: true } } },
+    });
+
+    if (!split) {
+      throw new NotFoundException('Expense split not found');
+    }
+
+    const isOwner = split.userId === userId;
+    const isPayer = split.expense.paidById === userId;
+    if (!isOwner && !isPayer) {
+      throw new ForbiddenException(
+        'You can only view splits that belong to you or that you are owed',
+      );
+    }
+
+    return { ...split, amount: split.amount.toString() };
   }
 }
